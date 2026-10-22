@@ -10,7 +10,7 @@ export interface Shop {
   whatsapp: string;
   address: string;
   state: string;
-  referral?: string;
+  referral?: string | undefined;
   priceBw: number;
   priceColor: number;
   doubleDiscount: number; // fraction off per page when double-sided
@@ -69,7 +69,7 @@ function seedOrders(shop: Shop): Order[] {
     return {
       id: `ORD-${1040 + i}`, shopId: shop.id, customer, fileName, pages, copies: i === 2 ? 2 : 1,
       color, sides, amount: calcPrice(shop, pages, color, sides, i === 2 ? 2 : 1),
-      status: statuses[i], createdAt: new Date(Date.now() - i * 23 * 60000).toISOString(),
+      status: statuses[i] ?? "pending", createdAt: new Date(Date.now() - i * 23 * 60000).toISOString(),
     };
   });
 }

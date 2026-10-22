@@ -63,7 +63,7 @@ function CustomerUpload() {
 
   const send = async () => {
     const n = nameSchema.safeParse(name);
-    if (!n.success) return setErr(n.error.issues[0].message);
+    if (!n.success) return setErr(n.error.issues[0]?.message ?? "Invalid name");
     if (!items.length) return setErr("Please add at least one file");
     setErr(""); setStatus("sending");
     try {

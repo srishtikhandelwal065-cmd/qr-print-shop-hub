@@ -134,7 +134,7 @@ function Home() {
                 <div className="flex gap-0.5 text-warning">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
                 <blockquote className="mt-4 text-sm leading-relaxed">“{q}”</blockquote>
                 <figcaption className="mt-5 flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{n[0]}</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{n?.[0]}</span>
                   <span><span className="block text-sm font-semibold">{n}</span><span className="text-xs text-muted-foreground">{s}</span></span>
                 </figcaption>
               </figure>
