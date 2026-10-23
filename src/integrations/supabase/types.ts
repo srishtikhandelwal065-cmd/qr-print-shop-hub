@@ -14,13 +14,187 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          amount: number
+          color: string
+          copies: number
+          created_at: string
+          customer: string
+          file_name: string
+          id: string
+          pages: number
+          shop_id: string
+          sides: string
+          status: string
+          storage_path: string
+        }
+        Insert: {
+          amount: number
+          color: string
+          copies: number
+          created_at?: string
+          customer: string
+          file_name: string
+          id?: string
+          pages: number
+          shop_id: string
+          sides: string
+          status?: string
+          storage_path: string
+        }
+        Update: {
+          amount?: number
+          color?: string
+          copies?: number
+          created_at?: string
+          customer?: string
+          file_name?: string
+          id?: string
+          pages?: number
+          shop_id?: string
+          sides?: string
+          status?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      shops: {
+        Row: {
+          accept_uploads: boolean
+          address: string
+          created_at: string
+          double_discount: number
+          id: string
+          name: string
+          owner: string
+          owner_id: string
+          price_bw: number
+          price_color: number
+          referral: string | null
+          show_whatsapp: boolean
+          state: string
+          whatsapp: string
+        }
+        Insert: {
+          accept_uploads?: boolean
+          address: string
+          created_at?: string
+          double_discount?: number
+          id: string
+          name: string
+          owner: string
+          owner_id: string
+          price_bw?: number
+          price_color?: number
+          referral?: string | null
+          show_whatsapp?: boolean
+          state: string
+          whatsapp: string
+        }
+        Update: {
+          accept_uploads?: boolean
+          address?: string
+          created_at?: string
+          double_discount?: number
+          id?: string
+          name?: string
+          owner?: string
+          owner_id?: string
+          price_bw?: number
+          price_color?: number
+          referral?: string | null
+          show_whatsapp?: boolean
+          state?: string
+          whatsapp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shops_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upload_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          shop_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          shop_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_attempts_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_print_shops: {
+        Args: { search_text?: string; shop_slug?: string }
+        Returns: {
+          accept_uploads: boolean
+          address: string
+          created_at: string
+          double_discount: number
+          id: string
+          name: string
+          price_bw: number
+          price_color: number
+          show_whatsapp: boolean
+          state: string
+          whatsapp: string
+        }[]
+      }
+      reserve_print_upload: { Args: { shop_slug: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
