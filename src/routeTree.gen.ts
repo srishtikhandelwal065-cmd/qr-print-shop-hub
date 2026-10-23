@@ -18,7 +18,6 @@ import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile
 import { Route as DashboardQrRouteImport } from './routes/dashboard.qr'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as SShopIdRouteImport } from './routes/s.$shopId'
-import { Route as ApiPublicUploadRouteImport } from './routes/api/public/upload'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,11 +64,6 @@ const SShopIdRoute = SShopIdRouteImport.update({
   path: '/s/$shopId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicUploadRoute = ApiPublicUploadRouteImport.update({
-  id: '/api/public/upload',
-  path: '/api/public/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/s/$shopId': typeof SShopIdRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/api/public/upload': typeof ApiPublicUploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/s/$shopId': typeof SShopIdRoute
   '/dashboard': typeof DashboardIndexRoute
-  '/api/public/upload': typeof ApiPublicUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,7 +97,6 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/s/$shopId': typeof SShopIdRoute
   '/dashboard/': typeof DashboardIndexRoute
-  '/api/public/upload': typeof ApiPublicUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,7 +110,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/s/$shopId'
     | '/dashboard/'
-    | '/api/public/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/s/$shopId'
     | '/dashboard'
-    | '/api/public/upload'
   id:
     | '__root__'
     | '/'
@@ -142,7 +131,6 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/s/$shopId'
     | '/dashboard/'
-    | '/api/public/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -150,7 +138,6 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   RegisterRoute: typeof RegisterRoute
   SShopIdRoute: typeof SShopIdRoute
-  ApiPublicUploadRoute: typeof ApiPublicUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -218,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SShopIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/upload': {
-      id: '/api/public/upload'
-      path: '/api/public/upload'
-      fullPath: '/api/public/upload'
-      preLoaderRoute: typeof ApiPublicUploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -253,7 +233,6 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   RegisterRoute: RegisterRoute,
   SShopIdRoute: SShopIdRoute,
-  ApiPublicUploadRoute: ApiPublicUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
