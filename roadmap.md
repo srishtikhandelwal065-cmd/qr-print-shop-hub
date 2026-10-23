@@ -1,0 +1,4 @@
+- [ ] Enable Lovable Cloud and owner authentication with profiles.
+- [ ] Persist shops and orders securely; store customer documents privately.
+- [ ] Connect registration, dashboard, QR uploads, downloads and settings to live data.
+- [ ] Test owner access and customer upload end to end; explain launch steps.
