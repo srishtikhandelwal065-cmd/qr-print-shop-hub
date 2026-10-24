@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
-export const Route = createFileRoute("/dashboard/settings")({ component: SettingsPage });
+export const Route = createFileRoute("/_authenticated/dashboard/settings")({ component: SettingsPage });
 
 const options = [
   ["accept", "Accept new uploads", "Turn off when your shop is closed."],

@@ -5,7 +5,7 @@ import { Loader2, LocateFixed, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { registerShop, STATES } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/register")({
+export const Route = createFileRoute("/_authenticated/register")({
   head: () => ({
     meta: [
       { title: "Register Your Print Shop — Printex" },

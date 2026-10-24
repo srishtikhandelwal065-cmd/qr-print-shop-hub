@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Download, Printer, Copy, Check, ExternalLink } from "lucide-react";
-import { useShop } from "./dashboard";
+import { useShop } from "@/lib/use-shop";
 import { shopUploadUrl } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard/qr")({ component: QrPage });
+export const Route = createFileRoute("/_authenticated/dashboard/qr")({ component: QrPage });
 
 function QrPage() {
   const [shop] = useShop();

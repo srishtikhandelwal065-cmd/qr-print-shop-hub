@@ -4,7 +4,7 @@ import { LayoutDashboard, FileText, QrCode, Store, Settings, Menu, X, ExternalLi
 import { Logo } from "@/components/Logo";
 import { DEMO_SHOP, getCurrentShop, type Shop } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Shop Dashboard — Printex" },

@@ -2,10 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FileText, Clock, CheckCircle2, IndianRupee, ArrowRight } from "lucide-react";
 import { OrdersTable } from "@/components/OrdersTable";
-import { useShop } from "./dashboard";
+import { useShop } from "@/lib/use-shop";
 import { listOrders, type Order } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard/")({ component: Overview });
+export const Route = createFileRoute("/_authenticated/dashboard/")({ component: Overview });
 
 function Overview() {
   const [shop] = useShop();

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { useShop } from "./dashboard";
+import { useShop } from "@/lib/use-shop";
 import { STATES, updateShop, type Shop } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard/profile")({ component: Profile });
+export const Route = createFileRoute("/_authenticated/dashboard/profile")({ component: Profile });
 
 function Profile() {
   const [shop] = useShop();
