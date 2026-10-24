@@ -1,16 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { FileText, Clock, CheckCircle2, IndianRupee, ArrowRight } from "lucide-react";
 import { OrdersTable } from "@/components/OrdersTable";
-import { useShop } from "./dashboard";
-import { listOrders, type Order } from "@/lib/shop-store";
+import { useShop } from "@/lib/use-shop";
+import { listOrders } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard/")({ component: Overview });
+export const Route = createFileRoute("/_authenticated/dashboard/")({ component: Overview });
 
 function Overview() {
   const [shop] = useShop();
-  const [orders, setOrders] = useState<Order[]>([]);
-  useEffect(() => setOrders(listOrders(shop.id)), [shop.id]);
+  const { data: all = [] } = useQuery({ queryKey: ["orders", shop.id], queryFn: () => listOrders(shop.id) });
+  const today = new Date().toDateString();
+  const orders = all.filter((o) => new Date(o.createdAt).toDateString() === today);
   const kpis = [
     { icon: FileText, label: "Total orders today", value: orders.length, tone: "bg-info-soft text-info" },
     { icon: Clock, label: "Pending", value: orders.filter((o) => o.status === "pending").length, tone: "bg-warning-soft text-warning" },

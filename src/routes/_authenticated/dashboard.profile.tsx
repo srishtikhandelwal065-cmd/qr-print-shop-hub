@@ -1,20 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { useShop } from "./dashboard";
+import { useShop } from "@/lib/use-shop";
+import { useQueryClient } from "@tanstack/react-query";
 import { STATES, updateShop, type Shop } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard/profile")({ component: Profile });
+export const Route = createFileRoute("/_authenticated/dashboard/profile")({ component: Profile });
 
 function Profile() {
   const [shop] = useShop();
   const [form, setForm] = useState<Shop>(shop);
-  const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   useEffect(() => setForm(shop), [shop]);
   const set = (k: keyof Shop, v: string | number) => setForm((f) => ({ ...f, [k]: v }));
-  const save = (e: React.FormEvent) => {
+  const qc = useQueryClient();
+  const save = async (e: React.FormEvent) => {
     e.preventDefault(); setState("saving");
-    setTimeout(() => { updateShop(form); setState("saved"); setTimeout(() => setState("idle"), 2000); }, 700);
+    try { await updateShop(form); await qc.invalidateQueries({ queryKey: ["my-shop"] }); setState("saved"); setTimeout(() => setState("idle"), 2000); }
+    catch { setState("error"); }
   };
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -36,6 +39,7 @@ function Profile() {
           <L label="Colour (₹)"><input type="number" min={0} step={0.5} className="field" value={form.priceColor} onChange={(e) => set("priceColor", Number(e.target.value))} /></L>
           <L label="Double-sided discount (%)"><input type="number" min={0} max={90} className="field" value={Math.round(form.doubleDiscount * 100)} onChange={(e) => set("doubleDiscount", Number(e.target.value) / 100)} /></L>
         </div>
+        {state === "error" && <p className="rounded-lg bg-destructive-soft p-3 text-sm text-destructive">Couldn't save. Please try again.</p>}
         <button disabled={state === "saving"} className="btn btn-primary">
           {state === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}
           {state === "saved" ? <><CheckCircle2 className="h-4 w-4" /> Saved</> : "Save changes"}

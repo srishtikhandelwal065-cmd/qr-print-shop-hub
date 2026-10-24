@@ -1,10 +1,12 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useMyShop } from "@/lib/use-shop";
 import { useEffect, useState } from "react";
-import { LayoutDashboard, FileText, QrCode, Store, Settings, Menu, X, ExternalLink } from "lucide-react";
+import { LayoutDashboard, FileText, QrCode, Store, Settings, Menu, X, ExternalLink, LogOut, Loader2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { DEMO_SHOP, getCurrentShop, type Shop } from "@/lib/shop-store";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Shop Dashboard — Printex" },
@@ -25,17 +27,21 @@ const items = [
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function useShop() {
-  const [shop, setShop] = useState<Shop>(DEMO_SHOP);
-  useEffect(() => setShop(getCurrentShop()), []);
-  return [shop, setShop] as const;
-}
-
 function DashboardLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
-  const [shop] = useShop();
+  const { data: shop, isLoading, error } = useMyShop();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
   useEffect(() => setOpen(false), [path]);
+  const signOut = async () => {
+    await qc.cancelQueries(); qc.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+  if (isLoading) return <div className="grid min-h-screen place-items-center"><Loader2 className="h-6 w-6 animate-spin text-teal" /></div>;
+  if (error) return <div className="grid min-h-screen place-items-center text-sm text-destructive">Couldn't load your shop. Please refresh.</div>;
+  if (!shop) return <Navigate to="/register" replace />;
 
   const sidebar = (
     <div className="flex h-full flex-col">
@@ -58,6 +64,9 @@ function DashboardLayout() {
         <Link to="/s/$shopId" params={{ shopId: shop.id }} target="_blank" className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
           <ExternalLink className="h-4 w-4" /> Customer upload page
         </Link>
+        <button onClick={signOut} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary">
+          <LogOut className="h-4 w-4" /> Sign out
+        </button>
       </div>
     </div>
   );

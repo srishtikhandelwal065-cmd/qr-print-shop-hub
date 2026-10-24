@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { OrdersTable } from "@/components/OrdersTable";
-import { useShop } from "./dashboard";
+import { useShop } from "@/lib/use-shop";
 
-export const Route = createFileRoute("/dashboard/orders")({ component: Orders });
+export const Route = createFileRoute("/_authenticated/dashboard/orders")({ component: Orders });
 
 function Orders() {
   const [shop] = useShop();
