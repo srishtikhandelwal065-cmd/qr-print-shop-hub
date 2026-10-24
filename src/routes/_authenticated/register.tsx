@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Loader2, LocateFixed, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { registerShop, STATES } from "@/lib/shop-store";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMyShop, myShopKey } from "@/lib/use-shop";
 
 export const Route = createFileRoute("/_authenticated/register")({
   head: () => ({
@@ -29,6 +31,9 @@ type Form = z.infer<typeof schema>;
 
 function Register() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { data: existing } = useMyShop();
+  useEffect(() => { if (existing) navigate({ to: "/dashboard", replace: true }); }, [existing, navigate]);
   const [form, setForm] = useState<Form>({ name: "", owner: "", whatsapp: "", address: "", state: "", referral: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
@@ -61,7 +66,8 @@ function Register() {
     }
     setStatus("saving");
     try {
-      await registerShop({ ...r.data, referral: r.data.referral || undefined });
+      const shop = await registerShop({ ...r.data, referral: r.data.referral || undefined });
+      qc.setQueryData(myShopKey, shop);
       setStatus("done");
       setTimeout(() => navigate({ to: "/dashboard" }), 900);
     } catch {
