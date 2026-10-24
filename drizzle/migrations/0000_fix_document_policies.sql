@@ -1,0 +1,4 @@
+DROP POLICY IF EXISTS documents_owner_read ON storage.objects;
+DROP POLICY IF EXISTS documents_owner_delete ON storage.objects;
+CREATE POLICY documents_owner_read ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'print-documents' AND EXISTS (SELECT 1 FROM public.shops s WHERE s.id = (storage.foldername(storage.objects.name))[1] AND s.owner_id = auth.uid()));
+CREATE POLICY documents_owner_delete ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'print-documents' AND EXISTS (SELECT 1 FROM public.shops s WHERE s.id = (storage.foldername(storage.objects.name))[1] AND s.owner_id = auth.uid()));
