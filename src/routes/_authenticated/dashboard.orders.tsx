@@ -9,10 +9,12 @@ function Orders() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-navy">Print Orders</h1>
-        <p className="text-sm text-muted-foreground">All files uploaded by your customers. Move each order through print → ready → collected.</p>
+        <h1 className="text-2xl font-bold text-navy">Print Orders Queue</h1>
+        <p className="text-sm text-muted-foreground">
+          Real-time incoming documents from your counter QR. Manage, print, and notify customers on WhatsApp.
+        </p>
       </div>
-      <OrdersTable shopId={shop.id} />
+      <OrdersTable shopId={shop.id} shopName={shop.name} />
     </div>
   );
 }
