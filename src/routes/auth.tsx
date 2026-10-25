@@ -36,6 +36,15 @@ function AuthPage() {
 
   useEffect(() => {
     const go = () => navigate({ to: dest, replace: true });
+    const token = typeof window !== "undefined" ? localStorage.getItem("printex_token") : null;
+    if (token) {
+      fetch("/api/auth.php?action=me", { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.user) go();
+        })
+        .catch(() => {});
+    }
     supabase.auth.getUser().then(({ data }) => data.user && go());
     const { data } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) go(); });
     return () => data.subscription.unsubscribe();
@@ -46,6 +55,34 @@ function AuthPage() {
     const r = creds.safeParse({ email, password });
     if (!r.success) return setMsg({ kind: "err", text: r.error.issues[0]?.message ?? "Invalid" });
     setBusy(true); setMsg(null);
+
+    const go = () => navigate({ to: dest, replace: true });
+
+    // 1. Try Hostinger Auth API first
+    try {
+      const res = await fetch(`/api/auth.php?action=${mode}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: r.data.email, password: r.data.password }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.token) {
+        localStorage.setItem("printex_token", data.token);
+        localStorage.setItem("printex_user", JSON.stringify(data.user));
+        setBusy(false);
+        go();
+        return;
+      }
+      if (!res.ok && data?.error && !data.error.includes("Database configuration missing")) {
+        setMsg({ kind: "err", text: data.error });
+        setBusy(false);
+        return;
+      }
+    } catch {
+      // Hostinger API offline or unreachable, fall back to Supabase
+    }
+
+    // 2. Fall back to Supabase
     if (mode === "signup") {
       const { data, error } = await supabase.auth.signUp({ ...r.data, options: { emailRedirectTo: window.location.origin + "/auth" } });
       if (error) setMsg({ kind: "err", text: error.message });

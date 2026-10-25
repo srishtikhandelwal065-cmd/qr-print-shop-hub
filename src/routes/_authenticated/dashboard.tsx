@@ -66,9 +66,13 @@ function DashboardLayout() {
   }, [shopId, qc, soundEnabled]);
 
   const signOut = async () => {
+    localStorage.removeItem("printex_token");
+    localStorage.removeItem("printex_user");
     await qc.cancelQueries();
     qc.clear();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {}
     navigate({ to: "/auth", replace: true });
   };
 

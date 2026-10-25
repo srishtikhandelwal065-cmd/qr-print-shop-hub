@@ -31,3 +31,9 @@ dist-ssr
 *.sln
 *.sw?
 *.zip
+
+# Hostinger Secrets & Customer Uploads
+api/config.php
+uploads/*
+!uploads/.htaccess
+!uploads/.gitkeep

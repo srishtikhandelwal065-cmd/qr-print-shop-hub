@@ -1,0 +1,5 @@
+# Prevent script execution inside uploads directory
+<FilesMatch "(?i)\.(php|php3|php4|php5|phtml|pl|py|cgi|sh|exe)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>
