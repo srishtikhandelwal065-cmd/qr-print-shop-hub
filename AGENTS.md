@@ -9,5 +9,6 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- All shop/order data goes through src/lib/shop-store.ts (localStorage mock); swap its functions for real API calls when a backend is added — keeps UI untouched.
+- All shop/order data goes through src/lib/shop-store.ts (Lovable Cloud); owner access relies on row-level rules, customer uploads go through a public server function that recomputes prices and issues signed upload URLs.
+- Owner pages live under src/routes/_authenticated/ (sign-in gate); /auth is the sign-in page.
 - Customer upload page lives at /s/$shopId outside the dashboard layout; customers never need an account.
