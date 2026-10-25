@@ -34,7 +34,7 @@ function Home() {
             {nav.map(([l, h]) => <a key={h} href={h} className="hover:text-foreground">{l}</a>)}
           </nav>
           <div className="hidden items-center gap-2 md:flex">
-            <Link to="/dashboard" className="btn btn-outline">Demo dashboard</Link>
+            <Link to="/dashboard" className="btn btn-outline">Open dashboard</Link>
             <Link to="/register" className="btn btn-primary">Get Started</Link>
           </div>
           <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
@@ -165,7 +165,7 @@ function Home() {
             <p className="font-semibold">Product</p>
             <a href="#features" className="block text-muted-foreground hover:text-foreground">Features</a>
             <Link to="/register" className="block text-muted-foreground hover:text-foreground">Register shop</Link>
-            <Link to="/dashboard" className="block text-muted-foreground hover:text-foreground">Dashboard demo</Link>
+            <Link to="/dashboard" className="block text-muted-foreground hover:text-foreground">Dashboard</Link>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p className="font-semibold text-foreground">Contact</p>
