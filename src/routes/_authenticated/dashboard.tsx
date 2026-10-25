@@ -34,6 +34,17 @@ function DashboardLayout() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   useEffect(() => setOpen(false), [path]);
+  const shopId = shop?.id;
+  useEffect(() => {
+    if (!shopId) return;
+    const channel = supabase
+      .channel(`orders-${shopId}-${Math.random().toString(36).slice(2)}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `shop_id=eq.${shopId}` }, () => {
+        qc.invalidateQueries({ queryKey: ["orders", shopId] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [shopId, qc]);
   const signOut = async () => {
     await qc.cancelQueries(); qc.clear();
     await supabase.auth.signOut();
