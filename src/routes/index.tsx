@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DEMO_SHOP, listShops } from "@/lib/shop-store";
+import { DEMO_SHOP, searchShops } from "@/lib/shop-store";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -192,7 +193,7 @@ function SectionHead({ eyebrow, title }: { eyebrow: string; title: string }) {
 
 function FindShop({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState("");
-  const shops = listShops().filter((s) => `${s.name} ${s.address}`.toLowerCase().includes(q.toLowerCase()));
+  const { data: shops = [] } = useQuery({ queryKey: ["find-shops", q], queryFn: () => searchShops(q) });
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-navy/40 p-4" onClick={onClose}>
       <div className="card fade-up w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
