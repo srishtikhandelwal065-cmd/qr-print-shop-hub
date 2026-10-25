@@ -1,28 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Printer, CheckCircle2, Download, Trash2, Loader2, Inbox } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { listOrders, saveOrders, type Order, type OrderStatus } from "@/lib/shop-store";
+import { listOrders, setOrderStatus, deleteOrder, downloadOrderFile, type Order, type OrderStatus } from "@/lib/shop-store";
 
 const next: Partial<Record<OrderStatus, OrderStatus>> = { pending: "printing", printing: "ready", ready: "collected" };
 const label: Partial<Record<OrderStatus, string>> = { pending: "Print", printing: "Mark ready", ready: "Collected" };
 
 export function OrdersTable({ shopId, limit, showFilters = true }: { shopId: string; limit?: number; showFilters?: boolean }) {
-  const [orders, setOrders] = useState<Order[] | null>(null);
+  const qc = useQueryClient();
+  const key = ["orders", shopId];
+  const { data: orders = null, error } = useQuery({ queryKey: key, queryFn: () => listOrders(shopId), refetchInterval: 15000 });
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [toast, setToast] = useState("");
-
-  useEffect(() => {
-    setOrders(null);
-    const t = setTimeout(() => setOrders(listOrders(shopId)), 450);
-    return () => clearTimeout(t);
-  }, [shopId]);
-
-  const update = (list: Order[], msg: string) => {
-    setOrders(list); saveOrders(shopId, list); setToast(msg);
-    setTimeout(() => setToast(""), 2000);
+  const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 2200); };
+  const run = async (fn: () => Promise<void>, msg: string) => {
+    try { await fn(); await qc.invalidateQueries({ queryKey: key }); flash(msg); } catch { flash("Something went wrong. Try again."); }
   };
-  const advance = (o: Order) => update(orders!.map((x) => (x.id === o.id ? { ...x, status: next[o.status]! } : x)), `${o.id} → ${next[o.status]}`);
-  const remove = (o: Order) => update(orders!.filter((x) => x.id !== o.id), `${o.id} deleted`);
+  const advance = (o: Order) => run(() => setOrderStatus(o.id, next[o.status]!), `${o.id} → ${next[o.status]}`);
+  const remove = (o: Order) => run(() => deleteOrder(o), `${o.id} deleted`);
+  const download = async (o: Order) => { try { await downloadOrderFile(o); } catch { flash("File not available"); } };
 
   const shown = useMemo(() => {
     const l = (orders ?? []).filter((o) => filter === "all" || o.status === filter);
@@ -40,7 +37,9 @@ export function OrdersTable({ shopId, limit, showFilters = true }: { shopId: str
           ))}
         </div>
       )}
-      {!orders ? (
+      {error ? (
+        <div className="p-12 text-center text-sm text-destructive">Couldn't load orders.</div>
+      ) : !orders ? (
         <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Loading orders…</div>
       ) : shown.length === 0 ? (
         <div className="p-12 text-center text-sm text-muted-foreground"><Inbox className="mx-auto mb-2 h-6 w-6" /> No orders here yet.</div>
@@ -66,7 +65,7 @@ export function OrdersTable({ shopId, limit, showFilters = true }: { shopId: str
                           {o.status === "pending" ? <Printer className="h-3.5 w-3.5" /> : <CheckCircle2 className="h-3.5 w-3.5" />} {label[o.status]}
                         </button>
                       )}
-                      <button title="Download" onClick={() => setToast("Downloads available once storage is connected")} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary"><Download className="h-4 w-4" /></button>
+                      <button title="Download" onClick={() => download(o)} className="rounded-lg p-2 text-muted-foreground hover:bg-secondary"><Download className="h-4 w-4" /></button>
                       <button title="Delete" onClick={() => remove(o)} className="rounded-lg p-2 text-muted-foreground hover:bg-destructive-soft hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </td>

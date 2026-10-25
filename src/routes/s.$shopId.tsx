@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { UploadCloud, FileText, X, Loader2, CheckCircle2, MessageCircle, MapPin, Minus, Plus, Printer, AlertCircle } from "lucide-react";
-import { calcPrice, countPdfPages, getShop, submitUpload, type PrintColor, type PrintSides, type Shop } from "@/lib/shop-store";
+import { calcPrice, countPdfPages, getPublicShop, submitUpload, type PrintColor, type PrintSides, type Shop } from "@/lib/shop-store";
 
 export const Route = createFileRoute("/s/$shopId")({
   head: () => ({
@@ -31,7 +31,8 @@ function CustomerUpload() {
   const [orderIds, setOrderIds] = useState<string[]>([]);
   const input = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { const t = setTimeout(() => setShop(getShop(shopId) ?? null), 350); return () => clearTimeout(t); }, [shopId]);
+  useEffect(() => { getPublicShop(shopId).then(setShop).catch(() => setShop(null)); }, [shopId]);
+  const [failMsg, setFailMsg] = useState("");
 
   const addFiles = async (list: FileList | null) => {
     if (!list) return;
@@ -68,11 +69,10 @@ function CustomerUpload() {
     setErr(""); setStatus("sending");
     try {
       const created = await submitUpload(shop.id, n.data, items.map((it) => ({
-        fileName: it.file.name, pages: it.pages ?? 1, copies: it.copies, color: it.color, sides: it.sides,
-        amount: calcPrice(shop, it.pages ?? 1, it.color, it.sides, it.copies),
+        file: it.file, pages: it.pages ?? 1, copies: it.copies, color: it.color, sides: it.sides,
       })));
       setOrderIds(created.map((c) => c.id)); setStatus("sent");
-    } catch { setStatus("error"); }
+    } catch (e) { setFailMsg(e instanceof Error && e.message.includes("not accepting") ? e.message : ""); setStatus("error"); }
   };
 
   const wa = `https://wa.me/91${shop.whatsapp}?text=${encodeURIComponent(`Hi ${shop.name}, I want to print some files.`)}`;
@@ -121,7 +121,7 @@ function CustomerUpload() {
         <input ref={input} type="file" multiple accept={ACCEPT} hidden onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
 
         {err && <p className="flex items-center gap-2 rounded-lg bg-destructive-soft p-3 text-sm text-destructive"><AlertCircle className="h-4 w-4" /> {err}</p>}
-        {status === "error" && <p className="rounded-lg bg-destructive-soft p-3 text-sm text-destructive">Upload failed. Check your internet and try again.</p>}
+        {status === "error" && <p className="rounded-lg bg-destructive-soft p-3 text-sm text-destructive">{failMsg || "Upload failed. Check your internet and try again."}</p>}
 
         {items.map((it) => (
           <div key={it.id} className="card fade-up p-4">
@@ -151,10 +151,11 @@ function CustomerUpload() {
           </div>
         ))}
 
-        <a href={wa} target="_blank" rel="noreferrer" className="card flex items-center gap-3 p-4">
+        {!shop.acceptUploads && <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning">This shop isn't accepting uploads right now.</p>}
+        {shop.showWhatsapp && <a href={wa} target="_blank" rel="noreferrer" className="card flex items-center gap-3 p-4">
           <span className="grid h-10 w-10 place-items-center rounded-full bg-success-soft text-success"><MessageCircle className="h-5 w-5" /></span>
           <span className="flex-1"><span className="block text-sm font-semibold">Prefer WhatsApp?</span><span className="text-xs text-muted-foreground">Send files directly to the shop's WhatsApp</span></span>
-        </a>
+        </a>}
         <p className="text-center text-xs text-muted-foreground">No account needed · Powered by <Link to="/" className="font-semibold">Printex</Link></p>
       </main>
 
