@@ -466,36 +466,288 @@ export async function deleteOrder(o: Order) {
   if (error) throw error;
 }
 
-export async function downloadOrderFile(o: Order) {
+export async function getOrderFileUrl(o: Order): Promise<string> {
   // 0. Base64 data URL
   if (o.storagePath && (o.storagePath.startsWith("data:") || o.storagePath.startsWith("blob:"))) {
-    const a = document.createElement("a");
-    a.href = o.storagePath;
-    a.download = o.fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return;
+    return o.storagePath;
   }
 
   // 1. If stored on Hostinger disk (relative path e.g. "shop-id/filename.pdf")
   if (o.storagePath && !o.storagePath.startsWith("http") && o.storagePath.includes("/")) {
-    window.open(`/api/upload.php?action=download&path=${encodeURIComponent(o.storagePath)}&name=${encodeURIComponent(o.fileName)}`, "_blank");
-    return;
+    return `/api/upload.php?action=download&path=${encodeURIComponent(o.storagePath)}&name=${encodeURIComponent(o.fileName)}`;
   }
 
   // 2. Supabase storage fallback
-  const { data, error } = await supabase.storage.from("print-documents").createSignedUrl(o.storagePath, 3600, { download: o.fileName });
-  if (!error && data?.signedUrl) {
-    window.open(data.signedUrl, "_blank");
+  try {
+    const { data: pub } = supabase.storage.from("print-documents").getPublicUrl(o.storagePath);
+    if (pub?.publicUrl) return pub.publicUrl;
+  } catch {}
+
+  try {
+    const { data } = await supabase.storage.from("print-documents").createSignedUrl(o.storagePath, 3600);
+    if (data?.signedUrl) return data.signedUrl;
+  } catch {}
+
+  return o.storagePath;
+}
+
+export async function downloadOrderFile(o: Order) {
+  const fileUrl = await getOrderFileUrl(o);
+  const a = document.createElement("a");
+  a.href = fileUrl;
+  a.download = o.fileName;
+  a.target = "_blank";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+export async function printOrderFile(o: Order) {
+  const fileUrl = await getOrderFileUrl(o);
+  const isImage = /\.(jpe?g|png|webp|gif|bmp|svg)$/i.test(o.fileName) || fileUrl.startsWith("data:image/");
+  const title = `Print Order #${o.tokenNo} - ${o.fileName}`;
+  const specDetails = `${o.pages} Page${o.pages > 1 ? "s" : ""} · ${o.color.toUpperCase()} · ${o.sides === "double" ? "Duplex" : "Single-sided"} · ${o.copies} Cop${o.copies > 1 ? "ies" : "y"} · Paper: ${o.paperSize || "A4"}`;
+
+  // Open the real print window
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    window.open(fileUrl, "_blank");
     return;
   }
-  const { data: pub } = supabase.storage.from("print-documents").getPublicUrl(o.storagePath);
-  if (pub?.publicUrl) {
-    window.open(pub.publicUrl, "_blank");
-  } else {
-    throw new Error("Could not download file");
+
+  if (isImage) {
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            @page {
+              size: ${o.paperSize || "A4"};
+              margin: 8mm;
+            }
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              padding: 0;
+              background: #0f172a;
+              color: white;
+              font-family: system-ui, -apple-system, sans-serif;
+              display: flex;
+              flex-direction: column;
+              min-height: 100vh;
+            }
+            .header-bar {
+              position: sticky;
+              top: 0;
+              z-index: 50;
+              background: #0f172a;
+              border-bottom: 1px solid rgba(255,255,255,0.1);
+              padding: 12px 20px;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            }
+            .token-pill {
+              background: #0d9488;
+              color: white;
+              font-weight: 800;
+              font-size: 15px;
+              padding: 3px 10px;
+              border-radius: 6px;
+              letter-spacing: 0.5px;
+            }
+            .doc-info {
+              margin-left: 12px;
+              font-size: 13px;
+              color: #cbd5e1;
+            }
+            .doc-info strong {
+              color: white;
+              font-size: 14px;
+            }
+            .btn-print {
+              background: #0d9488;
+              color: white;
+              border: none;
+              padding: 9px 20px;
+              border-radius: 6px;
+              font-weight: 800;
+              font-size: 14px;
+              cursor: pointer;
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              box-shadow: 0 2px 8px rgba(13,148,136,0.4);
+              transition: background 0.15s ease;
+            }
+            .btn-print:hover { background: #0f766e; }
+            .preview-container {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 24px;
+              background: #1e293b;
+            }
+            img {
+              max-width: 100%;
+              max-height: 85vh;
+              object-fit: contain;
+              background: white;
+              border-radius: 6px;
+              box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            }
+            @media print {
+              body, .preview-container { background: white !important; padding: 0 !important; }
+              .header-bar { display: none !important; }
+              img {
+                max-width: 100% !important;
+                max-height: 100% !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header-bar">
+            <div style="display:flex; align-items:center;">
+              <span class="token-pill">TOKEN #${o.tokenNo}</span>
+              <div class="doc-info">
+                <strong>${o.fileName}</strong> · Customer: ${o.customer}
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${specDetails}</div>
+              </div>
+            </div>
+            <button class="btn-print" onclick="window.print()">
+              🖨️ Print #${o.tokenNo}
+            </button>
+          </div>
+          <div class="preview-container">
+            <img src="${fileUrl}" alt="${o.fileName}" onload="setTimeout(function(){ window.print(); }, 400);" />
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    return;
   }
+
+  // If PDF or other document
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${title}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          @page { size: auto; margin: 0; }
+          body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; background: #0f172a; }
+          .header-bar {
+            height: 52px;
+            background: #0f172a;
+            color: white;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+          }
+          .token-pill {
+            background: #0d9488;
+            color: white;
+            font-weight: 800;
+            font-size: 14px;
+            padding: 3px 10px;
+            border-radius: 6px;
+          }
+          .doc-info { margin-left: 12px; font-size: 13px; color: #cbd5e1; }
+          .btn-print {
+            background: #0d9488;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+          }
+          .btn-print:hover { background: #0f766e; }
+          iframe {
+            width: 100%;
+            height: calc(100% - 52px);
+            border: none;
+            background: #fff;
+          }
+          @media print {
+            .header-bar { display: none !important; }
+            iframe { height: 100% !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header-bar">
+          <div style="display:flex; align-items:center;">
+            <span class="token-pill">TOKEN #${o.tokenNo}</span>
+            <div class="doc-info">
+              <strong>${o.fileName}</strong> · Customer: ${o.customer}
+              <div style="font-size: 11px; color: #94a3b8;">${specDetails}</div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap: 12px;">
+            <button class="btn-print" onclick="try{document.getElementById('pdfFrame').contentWindow.print();}catch(e){window.print();}">
+              🖨️ Print #${o.tokenNo}
+            </button>
+            <a href="${fileUrl}" target="_blank" style="color:#0d9488; font-size:12px; text-decoration:none; font-weight:600;">Open Standalone PDF ↗</a>
+          </div>
+        </div>
+        <iframe id="pdfFrame" src="${fileUrl}" onload="setTimeout(function(){ try { document.getElementById('pdfFrame').contentWindow.print(); } catch(e){} }, 500);"></iframe>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+export async function getNextTokenNo(shopId: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("token_no")
+      .eq("shop_id", shopId)
+      .order("created_at", { ascending: false })
+      .limit(200);
+
+    if (!error && data && data.length > 0) {
+      let maxNum = 0;
+      for (const row of data) {
+        const val = parseInt(String(row.token_no), 10);
+        // Ignore legacy 4-digit random tokens (>= 1000) so we start strictly 1, 2, 3...
+        if (!isNaN(val) && val < 1000 && val > maxNum) {
+          maxNum = val;
+        }
+      }
+      return String(maxNum + 1);
+    }
+  } catch {}
+
+  // Fallback to local storage cache if offline
+  if (typeof window !== "undefined") {
+    try {
+      const cached = JSON.parse(localStorage.getItem(`printex_orders_cache_${shopId}`) || "[]");
+      let maxNum = 0;
+      for (const o of cached) {
+        const val = parseInt(String(o.tokenNo), 10);
+        if (!isNaN(val) && val < 1000 && val > maxNum) {
+          maxNum = val;
+        }
+      }
+      return String(maxNum + 1);
+    } catch {}
+  }
+
+  return "1";
 }
 
 /**
@@ -508,7 +760,7 @@ export async function submitUpload(
   customerPhone: string,
   items: UploadItem[]
 ): Promise<CreatedOrderResult[]> {
-  const tokenNo = Math.floor(1000 + Math.random() * 9000).toString();
+  const tokenNo = await getNextTokenNo(shop.id);
   const results: CreatedOrderResult[] = [];
 
   for (const it of items) {

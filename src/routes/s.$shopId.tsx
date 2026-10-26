@@ -197,7 +197,7 @@ function CustomerUpload() {
     }
   };
 
-  const primaryToken = createdOrders[0]?.tokenNo || "4821";
+  const primaryToken = createdOrders[0]?.tokenNo || "1";
   
   const upiLink = useMemo(() => {
     if (status !== "sent" || !shop?.upiId) return "";
@@ -234,7 +234,7 @@ function CustomerUpload() {
             <div className="my-2 inline-block rounded-2xl bg-teal-soft px-6 py-3">
               <p className="font-mono text-4xl font-extrabold tracking-wider text-teal">#{primaryToken}</p>
             </div>
-            <p className="text-xs text-muted-foreground">Show or announce this 4-digit token at the Xerox counter.</p>
+            <p className="text-xs text-muted-foreground">Show or announce this token at the Xerox counter.</p>
             
             <div className="mt-4 flex items-center justify-between rounded-xl bg-secondary p-3 text-left">
               <div>
