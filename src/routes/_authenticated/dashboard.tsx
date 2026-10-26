@@ -95,7 +95,22 @@ function DashboardLayout() {
     );
   }
 
-  if (!shop) return <Navigate to="/register" replace />;
+  if (!shop) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-secondary p-4">
+        <div className="card max-w-md p-8 text-center space-y-4 shadow-md">
+          <Store className="mx-auto h-12 w-12 text-teal" />
+          <h2 className="text-2xl font-bold text-navy">Welcome to Printex!</h2>
+          <p className="text-sm text-muted-foreground">
+            You don't have a print shop registered yet. It takes less than 2 minutes to create your shop and get your counter QR code.
+          </p>
+          <Link to="/register" className="btn btn-teal w-full py-3 font-bold text-sm">
+            Create Your Shop Now →
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const sidebar = (
     <div className="flex h-full flex-col">

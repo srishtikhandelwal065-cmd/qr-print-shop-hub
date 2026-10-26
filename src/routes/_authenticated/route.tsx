@@ -6,23 +6,17 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("printex_token");
-      if (token) {
-        try {
-          const res = await fetch(`/api/auth.php?action=me&token=${encodeURIComponent(token)}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (res.ok) {
-            const d = await res.json();
-            if (d?.user) return; // Authenticated with Hostinger!
-          }
-        } catch {
-          // If offline or check fails, fall through to Supabase check
-        }
-      }
+      if (token) return; // Authenticated with Hostinger token!
     }
 
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/auth", search: { redirect: location.pathname } });
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) return;
+    } catch {
+      // Supabase unavailable
+    }
+
+    throw redirect({ to: "/auth", search: { redirect: location.pathname } });
   },
   component: () => <Outlet />,
 });

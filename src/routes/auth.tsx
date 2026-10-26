@@ -45,25 +45,7 @@ function AuthPage() {
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    const go = () => navigate({ to: dest, replace: true });
-    const token = typeof window !== "undefined" ? localStorage.getItem("printex_token") : null;
-    if (token) {
-      fetch(`/api/auth.php?action=me&token=${encodeURIComponent(token)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((r) => r.json())
-        .then((d) => {
-          if (d?.user) go();
-        })
-        .catch(() => {});
-    }
-    supabase.auth.getUser().then(({ data }) => data.user && go());
-    const { data } = supabase.auth.onAuthStateChange((e, s) => {
-      if (e === "SIGNED_IN" && s) go();
-    });
-    return () => data.subscription.unsubscribe();
-  }, [dest, navigate]);
+
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

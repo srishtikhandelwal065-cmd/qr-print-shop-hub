@@ -33,12 +33,34 @@ function Register() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { data: existing } = useMyShop();
-  useEffect(() => { if (existing) navigate({ to: "/dashboard", replace: true }); }, [existing, navigate]);
   const [form, setForm] = useState<Form>({ name: "", owner: "", whatsapp: "", address: "", state: "", referral: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState("");
+
+  if (existing) {
+    return (
+      <div className="min-h-screen bg-secondary">
+        <header className="border-b bg-background">
+          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+            <Logo />
+            <Link to="/dashboard" className="btn btn-outline text-xs">Open Dashboard</Link>
+          </div>
+        </header>
+        <main className="mx-auto max-w-md px-4 py-16 text-center">
+          <div className="card p-8 space-y-4">
+            <CheckCircle2 className="mx-auto h-12 w-12 text-teal" />
+            <h1 className="text-2xl font-bold text-navy">Shop Already Created!</h1>
+            <p className="text-sm text-muted-foreground">Your shop <strong>{existing.name}</strong> is active and ready to accept orders.</p>
+            <Link to="/dashboard" className="btn btn-teal w-full py-3 font-bold text-sm">
+              Open Shop Dashboard →
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   const set = (k: keyof Form, v: string) => { setForm((f) => ({ ...f, [k]: v })); setErrors((e) => ({ ...e, [k]: undefined })); };
 
