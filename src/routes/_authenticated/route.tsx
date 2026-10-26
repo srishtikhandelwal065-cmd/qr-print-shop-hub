@@ -5,6 +5,8 @@ export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) return;
       const { data } = await supabase.auth.getUser();
       if (data?.user) return;
     } catch {

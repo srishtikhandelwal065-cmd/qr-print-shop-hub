@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles, KeyRound } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,9 +29,13 @@ const creds = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+const TEST_EMAIL = "printextest99@maxxspace.com";
+const TEST_PASSWORD = "PrintexPassword123!";
+
 function AuthPage() {
   const { redirect, mode: initialMode } = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const dest = redirect ?? "/dashboard";
 
   const [mode, setMode] = useState<"signin" | "signup">(
@@ -44,6 +48,56 @@ function AuthPage() {
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // If already logged in, redirect directly to destination
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active && data?.session?.user) {
+        navigate({ to: dest, replace: true });
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [dest, navigate]);
+
+  const go = async () => {
+    await router.invalidate();
+    navigate({ to: dest, replace: true });
+  };
+
+  const loginWithTestCredentials = async () => {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: TEST_EMAIL,
+        password: TEST_PASSWORD,
+      });
+
+      if (error) {
+        setMsg({ kind: "err", text: error.message });
+      } else {
+        await go();
+      }
+    } catch (err: unknown) {
+      const e = err as Error;
+      setMsg({ kind: "err", text: e?.message || "Failed to sign in with test credentials." });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const fillTestCredentials = () => {
+    setMode("signin");
+    setEmail(TEST_EMAIL);
+    setPassword(TEST_PASSWORD);
+    setMsg({
+      kind: "ok",
+      text: "Test credentials filled! Click 'Sign In to Dashboard' below or press enter.",
+    });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const r = creds.safeParse({ email, password });
@@ -53,9 +107,7 @@ function AuthPage() {
 
     setBusy(true);
     setMsg(null);
-    const go = () => navigate({ to: dest, replace: true });
 
-    // 100% Pure Supabase Auth
     try {
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
@@ -68,14 +120,21 @@ function AuthPage() {
         });
 
         if (error) {
-          setMsg({ kind: "err", text: error.message });
+          if (error.message?.toLowerCase().includes("rate limit") || (error as { status?: number }).status === 429) {
+            setMsg({
+              kind: "err",
+              text: "Supabase email rate limit exceeded for new signups. Use the '⚡ 1-Click Instant Login' button above to sign in immediately!",
+            });
+          } else {
+            setMsg({ kind: "err", text: error.message });
+          }
         } else if (!data.session) {
           setMsg({
             kind: "ok",
-            text: "Account registered! Please check your email inbox to confirm your account, then sign in.",
+            text: "Account registered! If email confirmation is required, please check your inbox, or use the Test Login button above to access the dashboard directly.",
           });
         } else {
-          go();
+          await go();
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -86,7 +145,7 @@ function AuthPage() {
         if (error) {
           setMsg({ kind: "err", text: error.message });
         } else {
-          go();
+          await go();
         }
       }
     } catch (err: unknown) {
@@ -137,10 +196,55 @@ function AuthPage() {
         </div>
 
         <div className="card mt-6 space-y-4 p-6 md:p-8">
-          <button type="button" onClick={google} className="btn btn-outline w-full py-2.5 text-xs font-bold">
-            Continue with Google
-          </button>
-          <div className="text-center text-xs text-muted-foreground">or use your email & password</div>
+          {/* ⚡ Instant Test Login Box */}
+          <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-4 text-left">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-teal" />
+                <span className="text-xs font-bold uppercase tracking-wider text-teal">Ready Test Account</span>
+              </div>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">Active & Verified</span>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Skip signup hassles & rate limits — log straight into the working shop:
+            </p>
+            <div className="mt-2.5 space-y-1 font-mono text-xs bg-card rounded-lg p-2.5 border">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground font-sans">Email:</span>
+                <span className="font-semibold text-foreground select-all">{TEST_EMAIL}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground font-sans">Password:</span>
+                <span className="font-semibold text-foreground select-all">{TEST_PASSWORD}</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-dashed">
+                <span className="text-muted-foreground font-sans">Shop:</span>
+                <span className="font-sans font-medium text-teal">Printex Test Hub</span>
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={loginWithTestCredentials}
+                disabled={busy}
+                className="btn btn-teal text-xs py-2 w-full font-bold shadow-sm"
+              >
+                {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin mx-auto" /> : "⚡ 1-Click Instant Login"}
+              </button>
+              <button
+                type="button"
+                onClick={fillTestCredentials}
+                className="btn btn-outline text-xs py-2 px-3 font-semibold shrink-0"
+              >
+                Fill Form
+              </button>
+            </div>
+          </div>
+
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+            <div className="relative flex justify-center text-xs text-muted-foreground"><span className="bg-card px-2">or sign in manually</span></div>
+          </div>
 
           <form onSubmit={submit} noValidate className="space-y-4">
             {mode === "signup" && (
