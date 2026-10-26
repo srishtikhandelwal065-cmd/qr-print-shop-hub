@@ -160,26 +160,40 @@ function RegisterPage() {
         createdAt: new Date().toISOString(),
       };
 
+      // 4. Save to Supabase (try RPC create_print_shop first, then direct insert)
       try {
-        await supabase.from("shops").insert({
-          id: newShop.id,
-          owner_id: "af16241f-ec38-4101-a8f8-04563420f050",
-          name: newShop.name,
-          owner: newShop.owner,
-          whatsapp: newShop.whatsapp,
-          address: newShop.address,
-          state: newShop.state,
-          referral: newShop.referral,
-          price_bw: 2,
-          price_color: 10,
-          double_discount: 0.25,
-          price_spiral: 30,
-          price_staple: 5,
-          price_lamination: 20,
-          accept_uploads: true,
-          show_whatsapp: true,
+        const { error: rpcErr } = await supabase.rpc("create_print_shop", {
+          p_id: newShop.id,
+          p_name: newShop.name,
+          p_owner: newShop.owner,
+          p_whatsapp: newShop.whatsapp,
+          p_address: newShop.address,
+          p_state: newShop.state,
+          p_referral: newShop.referral || null,
         });
-      } catch {}
+
+        if (rpcErr) {
+          await supabase.from("shops").insert({
+            id: newShop.id,
+            name: newShop.name,
+            owner: newShop.owner,
+            whatsapp: newShop.whatsapp,
+            address: newShop.address,
+            state: newShop.state,
+            referral: newShop.referral,
+            price_bw: 2,
+            price_color: 10,
+            double_discount: 0.25,
+            price_spiral: 30,
+            price_staple: 5,
+            price_lamination: 20,
+            accept_uploads: true,
+            show_whatsapp: true,
+          });
+        }
+      } catch (dbErr) {
+        console.warn("Database sync warning:", dbErr);
+      }
 
       localStorage.setItem("printex_shop_cache", JSON.stringify(newShop));
       qc.setQueryData(myShopKey, newShop);

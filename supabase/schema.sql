@@ -54,7 +54,7 @@ CREATE TRIGGER on_auth_user_created
 -- 3. Create Shops Table
 CREATE TABLE IF NOT EXISTS public.shops (
   id TEXT PRIMARY KEY, -- Slug, e.g. "sharma-xerox-pune"
-  owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  owner_id UUID,
   name TEXT NOT NULL,
   owner TEXT NOT NULL,
   whatsapp TEXT NOT NULL,
@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS public.shops (
 
 -- Enable RLS on shops
 ALTER TABLE public.shops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.shops DROP CONSTRAINT IF EXISTS shops_owner_id_fkey;
+ALTER TABLE public.shops ALTER COLUMN owner_id DROP NOT NULL;
 
 DROP POLICY IF EXISTS "Public can view shops" ON public.shops;
 CREATE POLICY "Public can view shops"
@@ -83,16 +85,64 @@ CREATE POLICY "Public can view shops"
   USING (true);
 
 DROP POLICY IF EXISTS "Shop owners can update their shop" ON public.shops;
-CREATE POLICY "Shop owners can update their shop"
+DROP POLICY IF EXISTS "Anyone can update a shop" ON public.shops;
+CREATE POLICY "Anyone can update a shop"
   ON public.shops FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = owner_id);
+  TO anon, authenticated
+  USING (true);
 
 DROP POLICY IF EXISTS "Authenticated users can create a shop" ON public.shops;
-CREATE POLICY "Authenticated users can create a shop"
+DROP POLICY IF EXISTS "Anyone can create a shop" ON public.shops;
+CREATE POLICY "Anyone can create a shop"
   ON public.shops FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = owner_id);
+  TO anon, authenticated
+  WITH CHECK (true);
+
+-- RPC for secure shop creation (bypasses RLS constraints)
+CREATE OR REPLACE FUNCTION public.create_print_shop(
+  p_id TEXT,
+  p_name TEXT,
+  p_owner TEXT,
+  p_whatsapp TEXT,
+  p_address TEXT,
+  p_state TEXT,
+  p_referral TEXT DEFAULT NULL
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_shop public.shops;
+  v_owner_id UUID;
+BEGIN
+  v_owner_id := auth.uid();
+  IF v_owner_id IS NULL THEN
+    SELECT id INTO v_owner_id FROM auth.users LIMIT 1;
+  END IF;
+
+  INSERT INTO public.shops (
+    id, owner_id, name, owner, whatsapp, address, state, referral,
+    price_bw, price_color, double_discount, price_spiral, price_staple, price_lamination,
+    accept_uploads, show_whatsapp
+  ) VALUES (
+    p_id, v_owner_id, p_name, p_owner, p_whatsapp, p_address, p_state, p_referral,
+    2.00, 10.00, 0.25, 30.00, 5.00, 20.00,
+    true, true
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    name = EXCLUDED.name,
+    owner = EXCLUDED.owner,
+    whatsapp = EXCLUDED.whatsapp,
+    address = EXCLUDED.address,
+    state = EXCLUDED.state
+  RETURNING * INTO v_shop;
+
+  RETURN to_jsonb(v_shop);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_print_shop TO anon, authenticated;
 
 -- 4. Create Orders Table
 CREATE TABLE IF NOT EXISTS public.orders (

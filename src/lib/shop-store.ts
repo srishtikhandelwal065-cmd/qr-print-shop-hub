@@ -278,27 +278,48 @@ export async function getPublicShop(id: string): Promise<Shop | null> {
     } catch {}
   }
 
+  // 1. Exact match in Supabase
   try {
-    const { data, error } = await supabase.rpc("find_print_shops", { search_text: "", shop_slug: id });
-    if (!error && data?.[0]) {
-      const shop = toShop(data[0] as ShopRow);
+    const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
+    if (!error && data) {
+      const shop = toShop(data as ShopRow);
       if (typeof window !== "undefined") {
         try { localStorage.setItem(cacheKey, JSON.stringify(shop)); } catch {}
       }
       return shop;
     }
-  } catch {
-    // fallback
+  } catch {}
+
+  // 2. Prefix match in Supabase (in case link was truncated or has slug variation)
+  try {
+    const { data: prefixMatches } = await supabase
+      .from("shops")
+      .select("*")
+      .ilike("id", `${id}%`)
+      .limit(1);
+    if (prefixMatches && prefixMatches.length > 0) {
+      const shop = toShop(prefixMatches[0] as ShopRow);
+      if (typeof window !== "undefined") {
+        try { localStorage.setItem(cacheKey, JSON.stringify(shop)); } catch {}
+      }
+      return shop;
+    }
+  } catch {}
+
+  // 3. Check owner local shop cache (instant fallback if testing on same browser)
+  if (typeof window !== "undefined") {
+    try {
+      const activeCache = localStorage.getItem("printex_shop_cache");
+      if (activeCache) {
+        const parsed = JSON.parse(activeCache);
+        if (parsed?.id && (parsed.id === id || parsed.id.startsWith(id) || id.startsWith(parsed.id))) {
+          return parsed;
+        }
+      }
+    } catch {}
   }
 
-  const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
-  if (error) return null;
-  if (!data) return null;
-  const shop = toShop(data as ShopRow);
-  if (typeof window !== "undefined") {
-    try { localStorage.setItem(cacheKey, JSON.stringify(shop)); } catch {}
-  }
-  return shop;
+  return null;
 }
 
 export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsapp" | "address" | "state" | "referral">) {
