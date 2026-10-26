@@ -60,6 +60,7 @@ function CustomerUpload() {
   const [err, setErr] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [createdOrders, setCreatedOrders] = useState<CreatedOrderResult[]>([]);
+  const [tokenCopied, setTokenCopied] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const [failMsg, setFailMsg] = useState("");
 
@@ -227,12 +228,26 @@ function CustomerUpload() {
           </div>
         </header>
 
-        <main className="mx-auto -mt-3 max-w-md space-y-4 px-4">
+        <main className="mx-auto -mt-3 max-w-md space-y-4 px-3.5 sm:px-4">
           {/* Token Card */}
-          <div className="card text-center p-6 border-2 border-teal/40 bg-card shadow-lg">
+          <div className="card text-center p-5 sm:p-6 border-2 border-teal/40 bg-card shadow-lg space-y-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your Counter Pickup Token</p>
-            <div className="my-2 inline-block rounded-2xl bg-teal-soft px-6 py-3">
-              <p className="font-mono text-4xl font-extrabold tracking-wider text-teal">#{primaryToken}</p>
+            <div className="my-1 inline-flex items-center gap-2">
+              <div className="rounded-2xl bg-teal-soft px-6 py-3 border border-teal/20">
+                <p className="font-mono text-4xl sm:text-5xl font-extrabold tracking-wider text-teal">#{primaryToken}</p>
+              </div>
+            </div>
+            <div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`#${primaryToken}`);
+                  setTokenCopied(true);
+                  setTimeout(() => setTokenCopied(false), 2000);
+                }}
+                className="inline-flex items-center gap-1.5 text-xs text-teal font-semibold hover:underline active:scale-95 transition"
+              >
+                {tokenCopied ? "✓ Token # Copied!" : "📋 Copy Token Number"}
+              </button>
             </div>
             <p className="text-xs text-muted-foreground">Show or announce this token at the Xerox counter.</p>
             
@@ -301,9 +316,9 @@ function CustomerUpload() {
   // CUSTOMER UPLOAD FORM
   // ==========================================
   return (
-    <div className="min-h-screen bg-secondary pb-36">
+    <div className="min-h-screen bg-secondary pb-[calc(7rem+env(safe-area-inset-bottom))]">
       {/* Header */}
-      <header className="bg-navy px-5 pb-8 pt-6 text-primary-foreground shadow">
+      <header className="bg-navy px-4 sm:px-5 pb-7 pt-5 text-primary-foreground shadow">
         <div className="mx-auto max-w-md">
           <p className="flex items-center gap-1.5 text-xs opacity-75">
             <Printer className="h-3.5 w-3.5 text-teal" /> Upload & Print at
@@ -313,7 +328,7 @@ function CustomerUpload() {
             <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-teal" /> {shop.address}
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <div className="mt-3.5 flex flex-wrap gap-2 text-xs">
             <span className="rounded-full bg-white/10 px-3 py-1 font-medium">B/W: ₹{shop.priceBw}/pg</span>
             <span className="rounded-full bg-white/10 px-3 py-1 font-medium">Colour: ₹{shop.priceColor}/pg</span>
             {shop.doubleDiscount > 0 && (
@@ -325,7 +340,7 @@ function CustomerUpload() {
         </div>
       </header>
 
-      <main className="mx-auto -mt-4 max-w-md space-y-4 px-4">
+      <main className="mx-auto -mt-4 max-w-md space-y-3.5 sm:space-y-4 px-3.5 sm:px-4">
         {/* Customer Details Card */}
         <div className="card p-4 space-y-3">
           <div>
@@ -368,7 +383,7 @@ function CustomerUpload() {
             e.preventDefault();
             addFiles(e.dataTransfer.files);
           }}
-          className="card flex w-full flex-col items-center border-2 border-dashed border-teal/40 bg-teal-soft/50 p-7 text-center transition hover:border-teal hover:bg-teal-soft"
+          className="card flex w-full flex-col items-center border-2 border-dashed border-teal/40 bg-teal-soft/50 p-5 sm:p-7 text-center transition hover:border-teal hover:bg-teal-soft active:scale-[0.99]"
         >
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-teal text-white shadow">
             <UploadCloud className="h-6 w-6" />
@@ -462,17 +477,17 @@ function CustomerUpload() {
                 <div className="flex items-center gap-2 text-xs">
                   <span className="text-muted-foreground font-medium">Copies:</span>
                   <button
-                    className="grid h-7 w-7 place-items-center rounded-md border bg-secondary hover:bg-card"
+                    className="grid h-8 w-8 place-items-center rounded-lg border bg-secondary hover:bg-card active:scale-95 transition"
                     onClick={() => patch(it.id, { copies: Math.max(1, it.copies - 1) })}
                   >
-                    <Minus className="h-3.5 w-3.5" />
+                    <Minus className="h-4 w-4" />
                   </button>
-                  <span className="w-5 text-center font-bold">{it.copies}</span>
+                  <span className="w-6 text-center font-bold text-sm">{it.copies}</span>
                   <button
-                    className="grid h-7 w-7 place-items-center rounded-md border bg-secondary hover:bg-card"
+                    className="grid h-8 w-8 place-items-center rounded-lg border bg-secondary hover:bg-card active:scale-95 transition"
                     onClick={() => patch(it.id, { copies: Math.min(50, it.copies + 1) })}
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -601,16 +616,16 @@ function CustomerUpload() {
       </main>
 
       {/* Floating Bottom Action Bar */}
-      <div className="fixed inset-x-0 bottom-0 border-t bg-card p-4 shadow-xl z-20">
-        <div className="mx-auto flex max-w-md items-center gap-4">
-          <div>
-            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Estimated Total</p>
-            <p className="font-display text-2xl font-extrabold text-navy">₹{total.toFixed(2)}</p>
+      <div className="fixed inset-x-0 bottom-0 border-t bg-card/95 backdrop-blur p-3 sm:p-4 shadow-2xl z-30 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto flex max-w-md items-center gap-3 sm:gap-4">
+          <div className="shrink-0">
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider">Estimated Total</p>
+            <p className="font-display text-xl sm:text-2xl font-extrabold text-navy">₹{total.toFixed(2)}</p>
           </div>
           <button
             onClick={send}
             disabled={status === "sending" || isCounting || !items.length || !shop.acceptUploads}
-            className="btn btn-teal flex-1 py-3 text-sm font-bold shadow-md disabled:opacity-50"
+            className="btn btn-teal flex-1 py-3 text-sm font-bold shadow-md disabled:opacity-50 min-h-[46px] active:scale-[0.99]"
           >
             {status === "sending" ? (
               <>
@@ -636,14 +651,14 @@ function Seg<T extends string>({
   opts: [T, string][];
 }) {
   return (
-    <div className="flex rounded-lg bg-secondary p-1">
+    <div className="flex rounded-xl bg-secondary p-1 border">
       {opts.map(([v, l]) => (
         <button
           key={v}
           type="button"
           onClick={() => onChange(v)}
-          className={`flex-1 rounded-md px-1 py-1.5 text-[11px] font-semibold transition ${
-            value === v ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+          className={`flex-1 rounded-lg px-2 py-2 text-xs font-semibold leading-tight text-center min-h-[40px] flex items-center justify-center transition active:scale-[0.98] ${
+            value === v ? "bg-card text-foreground shadow-sm font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {l}

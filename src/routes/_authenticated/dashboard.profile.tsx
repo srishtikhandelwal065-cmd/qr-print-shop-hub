@@ -33,13 +33,13 @@ function Profile() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-navy">Shop Profile & Printing Rates</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold text-navy">Shop Profile & Printing Rates</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Configure your shop details, UPI ID for customer QR payments, and print/binding charges.
         </p>
       </div>
 
-      <form onSubmit={save} className="card space-y-6 p-6">
+      <form onSubmit={save} className="card space-y-5 sm:space-y-6 p-4 sm:p-6">
         {/* Shop Info Section */}
         <div>
           <h2 className="text-sm font-bold text-navy uppercase tracking-wider mb-4 border-b pb-2">
@@ -171,7 +171,7 @@ function Profile() {
           </p>
         )}
 
-        <button disabled={state === "saving"} className="btn btn-teal py-3 px-6 text-sm font-bold">
+        <button disabled={state === "saving"} className="btn btn-teal w-full sm:w-auto py-3 px-6 text-sm font-bold min-h-[44px]">
           {state === "saving" && <Loader2 className="h-4 w-4 animate-spin" />}
           {state === "saved" ? (
             <>

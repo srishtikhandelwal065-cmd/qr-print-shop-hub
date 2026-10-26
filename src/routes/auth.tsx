@@ -112,20 +112,20 @@ function AuthPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-12">
+      <main className="mx-auto max-w-md px-3.5 sm:px-4 py-8 sm:py-12">
         <div className="text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1 text-xs font-bold text-teal">
             <ShieldCheck className="h-3.5 w-3.5" /> For Print Shop Owners Only
           </span>
-          <h1 className="mt-3 text-3xl font-extrabold text-navy">
+          <h1 className="mt-3 text-2xl sm:text-3xl font-extrabold text-navy">
             Shop Owner Sign In
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">
             Sign in to access your live orders and counter standee.
           </p>
         </div>
 
-        <div className="card mt-6 space-y-4 p-6 md:p-8 shadow-sm">
+        <div className="card mt-5 sm:mt-6 space-y-4 p-5 sm:p-8 shadow-sm">
           <form onSubmit={submit} noValidate autoComplete="off" className="space-y-4">
             <div>
               <label htmlFor="owner-email" className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">

@@ -55,15 +55,15 @@ function Home() {
           <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold text-accent-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-teal" /> Built for Indian xerox & print shops
           </span>
-          <h1 className="fade-up mx-auto mt-6 max-w-3xl text-4xl font-bold leading-tight text-navy md:text-6xl">
+          <h1 className="fade-up mx-auto mt-6 max-w-3xl text-3xl sm:text-4xl md:text-6xl font-bold leading-tight text-navy">
             Manage Your Print Shop in <span className="text-teal">One Screen.</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
+          <p className="mx-auto mt-4 sm:mt-5 max-w-xl text-sm sm:text-base text-muted-foreground md:text-lg">
             No more WhatsApp chaos or pen-drive viruses. Customers scan your shop QR, upload files, choose print options — you see every order with the price calculated.
           </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link to="/register" className="btn btn-teal px-6 py-3"><QrCode className="h-4 w-4" /> Get My Shop QR Code</Link>
-            <button onClick={() => setFindOpen(true)} className="btn btn-outline px-6 py-3"><Upload className="h-4 w-4" /> Find Your Shop to Upload Files</button>
+          <div className="mt-7 sm:mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link to="/register" className="btn btn-teal px-6 py-3 min-h-[46px]"><QrCode className="h-4 w-4" /> Get My Shop QR Code</Link>
+            <button onClick={() => setFindOpen(true)} className="btn btn-outline px-6 py-3 min-h-[46px]"><Upload className="h-4 w-4" /> Find Your Shop to Upload Files</button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">Free to start · Setup in 2 minutes · No app download for customers</p>
           <DashboardPreview />

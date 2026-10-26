@@ -205,17 +205,90 @@ function DashboardLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print flex h-16 items-center justify-between border-b bg-background px-4 lg:hidden">
-          <button onClick={() => setOpen(true)} aria-label="Open menu" className="p-1">
+        {/* Mobile Header */}
+        <header className="no-print flex h-16 items-center justify-between border-b bg-background px-3.5 sm:px-4 lg:hidden">
+          <button
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+            className="grid h-10 w-10 place-items-center rounded-xl hover:bg-secondary active:scale-95 transition text-foreground"
+          >
             <Menu className="h-6 w-6" />
           </button>
+          
           <Logo to="/dashboard" />
-          <span className="w-6">{open && <X />}</span>
+
+          {/* Sound Chime Toggle Button on Mobile Header */}
+          <button
+            onClick={() => {
+              const next = !soundEnabled;
+              setSoundEnabled(next);
+              if (next) playNewOrderChime();
+            }}
+            aria-label="Toggle chime sound"
+            title={soundEnabled ? "Mute order sound chime" : "Enable order sound chime"}
+            className={`grid h-10 w-10 place-items-center rounded-xl border transition active:scale-95 ${
+              soundEnabled ? "bg-teal-soft text-teal border-teal/30" : "bg-secondary text-muted-foreground"
+            }`}
+          >
+            {soundEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
+          </button>
         </header>
 
-        <main className="flex-1 p-4 md:p-8">
+        {/* Main Content Area */}
+        <main className="flex-1 p-3.5 sm:p-6 md:p-8 pb-24 lg:pb-8">
           <Outlet />
         </main>
+
+        {/* Mobile Sticky Bottom Navigation Bar */}
+        <nav className="no-print fixed inset-x-0 bottom-0 z-40 flex items-center justify-around border-t bg-background/95 backdrop-blur px-2 py-1.5 lg:hidden pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-lg">
+          <Link
+            to="/dashboard"
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 px-3 text-[11px] font-semibold transition active:scale-95 ${
+              path === "/dashboard" || path === "/dashboard/"
+                ? "text-teal font-extrabold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Overview</span>
+          </Link>
+
+          <Link
+            to="/dashboard/orders"
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 px-3 text-[11px] font-semibold transition active:scale-95 ${
+              path.startsWith("/dashboard/orders")
+                ? "text-teal font-extrabold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            <span>Live Queue</span>
+          </Link>
+
+          <Link
+            to="/dashboard/qr"
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 px-3 text-[11px] font-semibold transition active:scale-95 ${
+              path.startsWith("/dashboard/qr")
+                ? "text-teal font-extrabold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <QrCode className="h-5 w-5" />
+            <span>Standee QR</span>
+          </Link>
+
+          <Link
+            to="/dashboard/profile"
+            className={`flex flex-col items-center gap-1 rounded-xl py-1 px-3 text-[11px] font-semibold transition active:scale-95 ${
+              path.startsWith("/dashboard/profile")
+                ? "text-teal font-extrabold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Store className="h-5 w-5" />
+            <span>Rates</span>
+          </Link>
+        </nav>
       </div>
     </div>
   );

@@ -82,13 +82,17 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * {
+    border-color: var(--color-border);
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
+    overscroll-behavior-y: none;
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
   input, textarea, select {
@@ -97,13 +101,15 @@
     pointer-events: auto !important;
     user-select: text !important;
     -webkit-user-select: text !important;
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
   }
 }
 
 @utility btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   border-radius: var(--radius); padding: 0.65rem 1.1rem; font-weight: 600; font-size: 0.9rem;
-  transition: all 0.15s ease; cursor: pointer;
+  transition: all 0.15s ease; cursor: pointer; touch-action: manipulation;
+  &:active:not(:disabled) { transform: scale(0.98); }
   &:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 @utility btn-primary {
@@ -125,7 +131,7 @@
 }
 @utility field {
   width: 100%; border: 1px solid #cbd5e1; border-radius: var(--radius); background-color: #ffffff !important;
-  color: #0f172a !important; padding: 0.65rem 0.85rem; font-size: 1rem; outline: none;
+  color: #0f172a !important; padding: 0.65rem 0.85rem; font-size: 16px !important; outline: none;
   pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important;
   caret-color: #0f172a !important;
   &:focus { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2); }
@@ -136,6 +142,12 @@
 }
 @utility fade-up {
   animation: fadeUp .5s ease both;
+}
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+@utility pt-safe {
+  padding-top: max(1rem, env(safe-area-inset-top));
 }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media print {

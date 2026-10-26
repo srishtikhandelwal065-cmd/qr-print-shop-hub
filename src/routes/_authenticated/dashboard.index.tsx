@@ -27,38 +27,38 @@ function Overview() {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-navy">Namaste, {shop.owner.split(" ")[0]} 👋</h1>
-          <p className="text-sm text-muted-foreground">Live daily counter ledger for {shop.name}.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-navy">Namaste, {shop.owner.split(" ")[0]} 👋</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Live daily counter ledger for {shop.name}.</p>
         </div>
         <Link
           to="/s/$shopId"
           params={{ shopId: shop.id }}
           target="_blank"
-          className="btn btn-teal text-xs w-fit"
+          className="btn btn-teal text-xs w-full sm:w-auto py-2.5 min-h-[40px] font-bold"
         >
           Open Customer QR Page ↗
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4">
         {kpis.map(({ icon: I, label, value, tone }) => (
-          <div key={label} className="card p-5">
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${tone}`}>
-              <I className="h-5 w-5" />
+          <div key={label} className="card p-3.5 sm:p-5">
+            <span className={`grid h-8 w-8 sm:h-10 sm:w-10 place-items-center rounded-xl ${tone}`}>
+              <I className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
-            <p className="mt-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
-            <p className="font-display text-2xl font-extrabold text-navy mt-0.5">{value}</p>
+            <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+            <p className="font-display text-lg sm:text-2xl font-extrabold text-navy mt-0.5">{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-navy">Recent Customer Orders</h2>
-        <Link to="/dashboard/orders" className="flex items-center gap-1 text-sm font-semibold text-teal hover:underline">
-          View full queue <ArrowRight className="h-4 w-4" />
+      <div className="flex items-center justify-between pt-1">
+        <h2 className="text-base sm:text-lg font-bold text-navy">Recent Customer Orders</h2>
+        <Link to="/dashboard/orders" className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-teal hover:underline">
+          View full queue <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
 
