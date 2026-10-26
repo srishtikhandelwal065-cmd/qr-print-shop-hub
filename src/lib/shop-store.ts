@@ -232,15 +232,45 @@ export async function searchShops(q: string): Promise<Shop[]> {
 }
 
 export async function getPublicShop(id: string): Promise<Shop | null> {
+  const cacheKey = `printex_public_shop_${id}`;
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        // Return cached shop immediately; revalidate in background
+        const parsed = JSON.parse(cached);
+        // Trigger background refresh without blocking
+        supabase.from("shops").select("*").eq("id", id).maybeSingle().then(({ data }) => {
+          if (data) {
+            localStorage.setItem(cacheKey, JSON.stringify(toShop(data as ShopRow)));
+          }
+        }).catch(() => {});
+        return parsed;
+      }
+    } catch {}
+  }
+
   try {
     const { data, error } = await supabase.rpc("find_print_shops", { search_text: "", shop_slug: id });
-    if (!error && data?.[0]) return toShop(data[0] as ShopRow);
+    if (!error && data?.[0]) {
+      const shop = toShop(data[0] as ShopRow);
+      if (typeof window !== "undefined") {
+        try { localStorage.setItem(cacheKey, JSON.stringify(shop)); } catch {}
+      }
+      return shop;
+    }
   } catch {
     // fallback
   }
+
   const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
   if (error) return null;
-  return data ? toShop(data as ShopRow) : null;
+  if (!data) return null;
+  const shop = toShop(data as ShopRow);
+  if (typeof window !== "undefined") {
+    try { localStorage.setItem(cacheKey, JSON.stringify(shop)); } catch {}
+  }
+  return shop;
 }
 
 export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsapp" | "address" | "state" | "referral">) {
@@ -462,8 +492,16 @@ export async function submitUpload(
 }
 
 export function shopUploadUrl(id: string) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://printex.app";
-  return `${origin}/s/${id}`;
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    // If running on localhost or 127.0.0.1, phone cameras cannot reach 'localhost:8080'.
+    // Use the live deployed URL so scanning from a phone immediately works!
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      return `https://printex.rolexnewbio.com/s/${id}`;
+    }
+    return `${origin}/s/${id}`;
+  }
+  return `https://printex.rolexnewbio.com/s/${id}`;
 }
 
 /**
@@ -522,11 +560,30 @@ export function playNewOrderChime() {
   }
 }
 
-// Client-side PDF page counter
+// Client-side ultra-fast non-blocking PDF page counter
 export async function countPdfPages(file: File): Promise<number> {
   try {
-    const text = await file.text();
-    const m = text.match(/\/Type\s*\/Page[^s]/g);
+    // Fast path: Check trailer /Pages dictionary in last 256KB or first 256KB
+    // This avoids reading tens of megabytes into memory and freezing the mobile UI
+    const endSize = Math.min(file.size, 256 * 1024);
+    const endChunk = await file.slice(Math.max(0, file.size - endSize)).text();
+    const endCount = endChunk.match(/\/Type\s*\/Pages[^>]*\/Count\s+(\d+)/) || endChunk.match(/\/Count\s+(\d+)/);
+    if (endCount && endCount[1]) {
+      const p = parseInt(endCount[1], 10);
+      if (!isNaN(p) && p > 0 && p < 5000) return p;
+    }
+
+    const startSize = Math.min(file.size, 256 * 1024);
+    const startChunk = await file.slice(0, startSize).text();
+    const startCount = startChunk.match(/\/Type\s*\/Pages[^>]*\/Count\s+(\d+)/) || startChunk.match(/\/Count\s+(\d+)/);
+    if (startCount && startCount[1]) {
+      const p = parseInt(startCount[1], 10);
+      if (!isNaN(p) && p > 0 && p < 5000) return p;
+    }
+
+    // Fallback: Sample slice (at most 1.5MB) to count /Type /Page without memory freeze
+    const sample = await file.slice(0, Math.min(file.size, 1536 * 1024)).text();
+    const m = sample.match(/\/Type\s*\/Page[^s]/g);
     return Math.max(1, m?.length ?? 1);
   } catch {
     return 1;

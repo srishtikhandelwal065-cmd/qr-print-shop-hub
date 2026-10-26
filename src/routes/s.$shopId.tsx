@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { QRCodeCanvas } from "qrcode.react";
 import {
@@ -45,7 +45,15 @@ const phoneSchema = z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a valid 10-di
 
 function CustomerUpload() {
   const { shopId } = Route.useParams();
-  const [shop, setShop] = useState<Shop | null | undefined>(undefined);
+  const [shop, setShop] = useState<Shop | null | undefined>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem(`printex_public_shop_${shopId}`);
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return undefined;
+  });
   const [items, setItems] = useState<Item[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -137,16 +145,19 @@ function CustomerUpload() {
     );
   }
 
-  const total = items.reduce(
-    (s, it) =>
-      s +
-      (it.activePages
-        ? calcPrice(shop, it.activePages, it.color, it.sides, it.copies, it.binding, it.paperSize)
-        : 0),
-    0
-  );
+  const total = useMemo(() => {
+    if (!shop) return 0;
+    return items.reduce(
+      (s, it) =>
+        s +
+        (it.activePages
+          ? calcPrice(shop, it.activePages, it.color, it.sides, it.copies, it.binding, it.paperSize)
+          : 0),
+      0
+    );
+  }, [shop, items]);
 
-  const isCounting = items.some((i) => i.totalPages === null);
+  const isCounting = useMemo(() => items.some((i) => i.totalPages === null), [items]);
 
   const send = async () => {
     const n = nameSchema.safeParse(name);
@@ -187,11 +198,19 @@ function CustomerUpload() {
   };
 
   const primaryToken = createdOrders[0]?.tokenNo || "4821";
-  const upiLink = shop.upiId ? getUpiPaymentUrl(shop.upiId, shop.name, total, primaryToken) : "";
-  const waShareMsg = encodeURIComponent(
-    `Namaste ${shop.name}! I just submitted a print order.\n\n*Pickup Token: #${primaryToken}*\nCustomer: ${name}\nFiles: ${items.length}\nEstimated Total: ₹${total.toFixed(2)}\n\nPlease let me know when ready!`
-  );
-  const waUrl = `https://wa.me/91${shop.whatsapp}?text=${waShareMsg}`;
+  
+  const upiLink = useMemo(() => {
+    if (status !== "sent" || !shop?.upiId) return "";
+    return getUpiPaymentUrl(shop.upiId, shop.name, total, primaryToken);
+  }, [status, shop?.upiId, shop?.name, total, primaryToken]);
+
+  const waUrl = useMemo(() => {
+    if (status !== "sent" || !shop) return "";
+    const waShareMsg = encodeURIComponent(
+      `Namaste ${shop.name}! I just submitted a print order.\n\n*Pickup Token: #${primaryToken}*\nCustomer: ${name}\nFiles: ${items.length}\nEstimated Total: ₹${total.toFixed(2)}\n\nPlease let me know when ready!`
+    );
+    return `https://wa.me/91${shop.whatsapp}?text=${waShareMsg}`;
+  }, [status, shop, primaryToken, name, items.length, total]);
 
   // ==========================================
   // ORDER SUCCESS CONFIRMATION SCREEN
@@ -312,11 +331,14 @@ function CustomerUpload() {
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your Name *</label>
             <input
-              className="field"
+              className="field text-base sm:text-sm"
               placeholder="e.g. Rahul Sharma"
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={40}
+              autoComplete="name"
+              autoCorrect="off"
+              spellCheck={false}
             />
           </div>
           <div>
@@ -324,12 +346,15 @@ function CustomerUpload() {
             <div className="flex">
               <span className="grid place-items-center rounded-l-[var(--radius)] border border-r-0 bg-secondary px-3 text-xs text-muted-foreground font-medium">+91</span>
               <input
-                className="field rounded-l-none"
+                className="field rounded-l-none text-base sm:text-sm"
                 placeholder="For WhatsApp status updates"
                 inputMode="numeric"
                 maxLength={10}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                autoComplete="tel"
+                autoCorrect="off"
+                spellCheck={false}
               />
             </div>
           </div>
@@ -576,7 +601,7 @@ function CustomerUpload() {
       </main>
 
       {/* Floating Bottom Action Bar */}
-      <div className="fixed inset-x-0 bottom-0 border-t bg-background/95 backdrop-blur-md p-4 shadow-lg z-20">
+      <div className="fixed inset-x-0 bottom-0 border-t bg-card p-4 shadow-xl z-20">
         <div className="mx-auto flex max-w-md items-center gap-4">
           <div>
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Estimated Total</p>
