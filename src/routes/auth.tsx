@@ -112,15 +112,19 @@ function AuthPage() {
 
     try {
       if (mode === "signup") {
-        // 1. Attempt Supabase signup in background
+        // 1. Attempt Supabase signup in background with 1.5s timeout (never hang the user)
         try {
-          await supabase.auth.signUp({
+          const signUpPromise = supabase.auth.signUp({
             email: r.data.email,
             password: r.data.password,
             options: {
               data: { display_name: name.trim() || undefined },
             },
           });
+          await Promise.race([
+            signUpPromise,
+            new Promise((resolve) => setTimeout(resolve, 1500)),
+          ]);
         } catch {}
 
         // 2. Set active verified session immediately (bypasses Supabase SMTP & rate limit blocks!)
@@ -179,14 +183,21 @@ function AuthPage() {
         navigate({ to: "/dashboard", replace: true });
         return;
       } else {
-        // Sign in flow: try Supabase first
+        // Sign in flow: try Supabase with 2s timeout
         let authed = false;
         try {
-          const { data, error } = await supabase.auth.signInWithPassword({
+          const signInPromise = supabase.auth.signInWithPassword({
             email: r.data.email,
             password: r.data.password,
           });
-          if (!error && data?.session) authed = true;
+          const res = (await Promise.race([
+            signInPromise,
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+          ])) as { data?: { session?: unknown }; error?: unknown } | null;
+
+          if (res && !res.error && res.data?.session) {
+            authed = true;
+          }
         } catch {}
 
         // Fallback: If matches test credentials or any valid shop owner email
@@ -321,52 +332,66 @@ function AuthPage() {
             <div className="relative flex justify-center text-xs text-muted-foreground"><span className="bg-card px-2">or sign in manually</span></div>
           </div>
 
-          <form onSubmit={submit} noValidate className="space-y-4">
+          <form onSubmit={submit} noValidate autoComplete="off" className="space-y-4">
             {mode === "signup" && (
               <div>
-                <label className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
+                <label htmlFor="owner-name" className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
                   Owner / Shop Name
                 </label>
                 <input
+                  id="owner-name"
+                  name="printex_owner_name"
                   className="field"
                   type="text"
                   placeholder="e.g. Rakesh Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  autoComplete="name"
-                  style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
                 />
               </div>
             )}
 
             <div>
-              <label className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
+              <label htmlFor="owner-email" className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
                 Email Address
               </label>
               <input
+                id="owner-email"
+                name="printex_owner_email"
                 className="field"
                 type="email"
+                inputMode="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
                 required
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
+              <label htmlFor="owner-password" className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
                 Password
               </label>
               <input
+                id="owner-password"
+                name="printex_owner_password"
                 className="field"
                 type="password"
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                style={{ color: "#0f172a", backgroundColor: "#ffffff" }}
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
+                style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
                 required
               />
             </div>
