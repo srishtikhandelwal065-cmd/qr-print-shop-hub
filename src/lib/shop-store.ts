@@ -1,4 +1,4 @@
-// Data layer backed by Supabase. Supports both Server Functions and Direct Client-side RLS fallback.
+// Data layer backed by Supabase for Auth & Database, and Hostinger for Large File Storage.
 import { supabase } from "@/integrations/supabase/client";
 import { createUploadOrders } from "@/lib/upload.functions";
 
@@ -188,27 +188,7 @@ const toShop = (r: ShopRow): Shop => ({
   createdAt: r.created_at,
 });
 
-function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("printex_token");
-}
-
 export async function getMyShop(): Promise<Shop | null> {
-  const token = getAuthToken();
-  if (token) {
-    try {
-      const res = await fetch(`/api/shops.php?my_shop=1&token=${encodeURIComponent(token)}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.shop) return json.shop;
-      }
-    } catch (err) {
-      console.warn("Hostinger shop fetch failed, falling back to Supabase", err);
-    }
-  }
-
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) return null;
   const { data, error } = await supabase.from("shops").select("*").eq("owner_id", u.user.id).maybeSingle();
@@ -217,16 +197,6 @@ export async function getMyShop(): Promise<Shop | null> {
 }
 
 export async function searchShops(q: string): Promise<Shop[]> {
-  try {
-    const res = await fetch(`/api/shops.php?q=${encodeURIComponent(q)}`);
-    if (res.ok) {
-      const json = await res.json();
-      if (Array.isArray(json?.shops)) return json.shops;
-    }
-  } catch {
-    // fallback
-  }
-
   try {
     const { data, error } = await supabase.rpc("find_print_shops", { search_text: q });
     if (!error && data) return data.map((r: unknown) => toShop(r as ShopRow));
@@ -240,16 +210,6 @@ export async function searchShops(q: string): Promise<Shop[]> {
 
 export async function getPublicShop(id: string): Promise<Shop | null> {
   try {
-    const res = await fetch(`/api/shops.php?id=${encodeURIComponent(id)}`);
-    if (res.ok) {
-      const json = await res.json();
-      if (json?.shop) return json.shop;
-    }
-  } catch {
-    // fallback
-  }
-
-  try {
     const { data, error } = await supabase.rpc("find_print_shops", { search_text: "", shop_slug: id });
     if (!error && data?.[0]) return toShop(data[0] as ShopRow);
   } catch {
@@ -261,23 +221,6 @@ export async function getPublicShop(id: string): Promise<Shop | null> {
 }
 
 export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsapp" | "address" | "state" | "referral">) {
-  const token = getAuthToken();
-  if (token) {
-    try {
-      const res = await fetch(`/api/shops.php?token=${encodeURIComponent(token)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(input),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.shop) return json.shop;
-      }
-    } catch (err) {
-      console.warn("Hostinger register shop failed, falling back to Supabase", err);
-    }
-  }
-
   const { data: u } = await supabase.auth.getUser();
   if (!u.user) throw new Error("Please sign in first");
   const base = slugify(input.name) || "shop";
@@ -300,20 +243,6 @@ export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsap
 }
 
 export async function updateShop(shop: Shop) {
-  const token = getAuthToken();
-  if (token) {
-    try {
-      const res = await fetch(`/api/shops.php?token=${encodeURIComponent(token)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(shop),
-      });
-      if (res.ok) return;
-    } catch (err) {
-      console.warn("Hostinger update shop failed, falling back to Supabase", err);
-    }
-  }
-
   const { error } = await supabase.from("shops").update({
     name: shop.name,
     owner: shop.owner,
@@ -334,16 +263,6 @@ export async function updateShop(shop: Shop) {
 }
 
 export async function listOrders(shopId: string): Promise<Order[]> {
-  try {
-    const res = await fetch(`/api/orders.php?shop_id=${encodeURIComponent(shopId)}`);
-    if (res.ok) {
-      const json = await res.json();
-      if (Array.isArray(json?.orders)) return json.orders;
-    }
-  } catch (err) {
-    console.warn("Hostinger list orders failed, falling back to Supabase", err);
-  }
-
   const { data, error } = await supabase.from("orders").select("*").eq("shop_id", shopId).order("created_at", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((r: Record<string, unknown>) => ({
@@ -369,46 +288,44 @@ export async function listOrders(shopId: string): Promise<Order[]> {
 }
 
 export async function setOrderStatus(id: string, status: OrderStatus) {
-  try {
-    const res = await fetch("/api/orders.php?action=status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
-    if (res.ok) return;
-  } catch (err) {
-    console.warn("Hostinger status update failed, falling back to Supabase", err);
-  }
-
   const { error } = await supabase.from("orders").update({ status }).eq("id", id);
   if (error) throw error;
 }
 
 export async function deleteOrder(o: Order) {
-  try {
-    const res = await fetch("/api/orders.php?action=delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: o.id }),
-    });
-    if (res.ok) return;
-  } catch (err) {
-    console.warn("Hostinger delete failed, falling back to Supabase", err);
+  // Delete physical file from Hostinger storage disk if stored there
+  if (o.storagePath && !o.storagePath.startsWith("http")) {
+    try {
+      await fetch("/api/upload.php?action=delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: o.storagePath }),
+      });
+    } catch {
+      // ignore
+    }
   }
 
-  await supabase.storage.from("print-documents").remove([o.storagePath]);
+  // Delete from Supabase storage if stored there
+  try {
+    await supabase.storage.from("print-documents").remove([o.storagePath]);
+  } catch {
+    // ignore
+  }
+
+  // Delete from Supabase database
   const { error } = await supabase.from("orders").delete().eq("id", o.id);
   if (error) throw error;
 }
 
 export async function downloadOrderFile(o: Order) {
-  // If Hostinger storage (starts with shop id relative path like "{shopId}/..."), use api/orders.php?action=download
-  if (o.storagePath && !o.storagePath.startsWith("http")) {
-    window.open(`/api/orders.php?action=download&id=${encodeURIComponent(o.id)}`, "_blank");
+  // 1. If stored on Hostinger disk (relative path e.g. "shop-id/filename.pdf")
+  if (o.storagePath && !o.storagePath.startsWith("http") && o.storagePath.includes("/")) {
+    window.open(`/api/upload.php?action=download&path=${encodeURIComponent(o.storagePath)}&name=${encodeURIComponent(o.fileName)}`, "_blank");
     return;
   }
 
-  // First try signed URL, then public URL
+  // 2. Supabase storage fallback
   const { data, error } = await supabase.storage.from("print-documents").createSignedUrl(o.storagePath, 3600, { download: o.fileName });
   if (!error && data?.signedUrl) {
     window.open(data.signedUrl, "_blank");
@@ -423,9 +340,8 @@ export async function downloadOrderFile(o: Order) {
 }
 
 /**
- * Resilient submit upload that works seamlessly with both:
- * 1) Hostinger PHP + MySQL Backend (stored on Hostinger disk in uploads/{shopId})
- * 2) Server Functions & Direct Client-Side Supabase Upload (fallback)
+ * Uploads physical files directly to Hostinger disk storage (100GB+ space),
+ * and saves order metadata directly to Supabase Database (with Realtime & RLS).
  */
 export async function submitUpload(
   shop: Shop,
@@ -434,109 +350,50 @@ export async function submitUpload(
   items: UploadItem[]
 ): Promise<CreatedOrderResult[]> {
   const tokenNo = Math.floor(1000 + Math.random() * 9000).toString();
+  const results: CreatedOrderResult[] = [];
 
-  // 1. Try Hostinger Direct File Upload first
-  try {
-    const hostingerResults: CreatedOrderResult[] = [];
-    for (const it of items) {
-      const amt = calcPrice(shop, it.pages, it.color, it.sides, it.copies, it.binding, it.paperSize);
+  for (const it of items) {
+    const amount = calcPrice(shop, it.pages, it.color, it.sides, it.copies, it.binding, it.paperSize);
+    let storagePath = "";
+
+    // 1. Save physical file to Hostinger Disk Storage
+    try {
       const fd = new FormData();
       fd.append("shop_id", shop.id);
-      fd.append("customer", customer);
-      fd.append("customer_phone", customerPhone);
       fd.append("file", it.file);
-      fd.append("pages", it.pages.toString());
-      fd.append("copies", it.copies.toString());
-      fd.append("color", it.color);
-      fd.append("sides", it.sides);
-      fd.append("paper_size", it.paperSize || "A4");
-      fd.append("binding", it.binding || "none");
-      fd.append("page_range", it.pageRange || "all");
-      fd.append("amount", amt.toString());
-      fd.append("token_no", tokenNo);
 
       const res = await fetch("/api/upload.php", {
         method: "POST",
         body: fd,
       });
 
-      if (!res.ok) {
-        throw new Error(`Hostinger upload returned status ${res.status}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.filePath) {
+          storagePath = json.filePath;
+        }
       }
-      const json = await res.json();
-      if (json?.order) {
-        hostingerResults.push({
-          id: json.order.id,
-          tokenNo: json.order.tokenNo || tokenNo,
-          amount: json.order.amount || amt,
-        });
-      } else {
-        throw new Error(json?.error || "Hostinger upload response missing order data");
-      }
+    } catch (err) {
+      console.warn("Hostinger upload failed, attempting Supabase storage fallback...", err);
     }
-    if (hostingerResults.length === items.length) {
-      return hostingerResults;
-    }
-  } catch (hostingerErr) {
-    console.warn("Hostinger direct upload failed, trying Supabase fallback...", hostingerErr);
-  }
 
-  // 2. Try Supabase server function
-  try {
-    const created = await createUploadOrders({
-      data: {
-        shopId: shop.id,
-        customer,
-        items: items.map(({ file, pages, copies, color, sides }) => ({
-          fileName: file.name,
-          pages,
-          copies,
-          color,
-          sides,
-        })),
-      },
-    });
-    if (created && created.length > 0) {
-      await Promise.all(
-        created.map(async (c, i) => {
-          const { error } = await supabase.storage.from("print-documents").uploadToSignedUrl(c.path, c.token, items[i]!.file);
-          if (error) throw error;
-        })
-      );
-      return created.map((c, i) => {
-        const it = items[i]!;
-        const amt = calcPrice(shop, it.pages, it.color, it.sides, it.copies, it.binding, it.paperSize);
-        return {
-          id: c.id,
-          tokenNo: tokenNo,
-          amount: amt,
-        };
+    // 2. Fallback to Supabase Storage if Hostinger is unreachable
+    if (!storagePath) {
+      const safe = it.file.name.replace(/[^\w.\-]+/g, "_").slice(-100);
+      const fileId = crypto.randomUUID();
+      storagePath = `${shop.id}/${fileId}-${safe}`;
+
+      const { error: uploadErr } = await supabase.storage.from("print-documents").upload(storagePath, it.file, {
+        cacheControl: "3600",
+        upsert: false,
       });
-    }
-  } catch (serverErr) {
-    console.warn("Server function unavailable, using direct Supabase client upload...", serverErr);
-  }
-
-  // 3. Direct Client-Side Supabase Upload & Insert Fallback
-  const results: CreatedOrderResult[] = [];
-
-  for (const it of items) {
-    const safe = it.file.name.replace(/[^\w.\-]+/g, "_").slice(-100);
-    const fileId = crypto.randomUUID();
-    const storagePath = `${shop.id}/${fileId}-${safe}`;
-    const amount = calcPrice(shop, it.pages, it.color, it.sides, it.copies, it.binding, it.paperSize);
-
-    // Upload directly to Supabase storage bucket
-    const { error: uploadErr } = await supabase.storage.from("print-documents").upload(storagePath, it.file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-    if (uploadErr) {
-      console.error("Storage upload error:", uploadErr);
-      throw new Error("Could not upload file to storage: " + uploadErr.message);
+      if (uploadErr) {
+        console.error("Storage upload error:", uploadErr);
+        throw new Error("Could not upload file to storage: " + uploadErr.message);
+      }
     }
 
-    // Insert order into orders table
+    // 3. Insert order record into Supabase Database
     const orderId = `ORD-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const { error: insertErr } = await supabase.from("orders").insert({
       id: orderId,
@@ -565,7 +422,7 @@ export async function submitUpload(
 
     results.push({
       id: orderId,
-      tokenNo: tokenNo,
+      tokenNo,
       amount,
     });
   }

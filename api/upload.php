@@ -1,107 +1,106 @@
 <?php
-// api/upload.php - Direct File Upload to Hostinger Storage
-require_once __DIR__ . '/db.php';
+// api/upload.php - Pure Hostinger Disk Storage Endpoint for Print Documents
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
     exit();
 }
 
-$shopId = trim($_POST['shop_id'] ?? '');
-$customer = trim($_POST['customer'] ?? '');
-$customerPhone = trim($_POST['customer_phone'] ?? '');
-$pages = (int)($_POST['pages'] ?? 1);
-$copies = (int)($_POST['copies'] ?? 1);
-$color = trim($_POST['color'] ?? 'bw');
-$sides = trim($_POST['sides'] ?? 'single');
-$paperSize = trim($_POST['paper_size'] ?? 'A4');
-$binding = trim($_POST['binding'] ?? 'none');
-$pageRange = trim($_POST['page_range'] ?? 'all');
-$amount = (float)($_POST['amount'] ?? 0);
-$tokenNo = trim($_POST['token_no'] ?? (string)rand(1000, 9999));
+$action = $_GET['action'] ?? '';
 
-if (!$shopId || !$customer) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Shop ID and Customer name are required']);
+// 1. Download file action
+if ($action === 'download' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $path = trim($_GET['path'] ?? '');
+    $customName = trim($_GET['name'] ?? '');
+
+    if (!$path) {
+        http_response_code(400);
+        die('File path is required');
+    }
+
+    // Security: sanitize path to prevent directory traversal
+    $safePath = str_replace(['..', "\0"], '', $path);
+    $fullPath = dirname(__DIR__) . '/uploads/' . ltrim($safePath, '/');
+
+    if (!file_exists($fullPath) || is_dir($fullPath)) {
+        http_response_code(404);
+        die('File not found on Hostinger storage');
+    }
+
+    $fileName = $customName ?: basename($fullPath);
+    $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+
+    header('Content-Description: File Transfer');
+    header('Content-Type: ' . $mime);
+    header('Content-Disposition: inline; filename="' . basename($fileName) . '"');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate');
+    header('Pragma: public');
+    header('Content-Length: ' . filesize($fullPath));
+    readfile($fullPath);
     exit();
 }
 
-// Verify shop exists and is accepting uploads
-$stmt = $pdo->prepare('SELECT id, accept_uploads FROM shops WHERE id = ?');
-$stmt->execute([$shopId]);
-$shop = $stmt->fetch();
-if (!$shop) {
-    http_response_code(404);
-    echo json_encode(['error' => 'Shop not found']);
-    exit();
-}
-if (!$shop['accept_uploads']) {
-    http_response_code(400);
-    echo json_encode(['error' => 'This shop is not accepting uploads right now']);
-    exit();
-}
+// 2. Delete file action
+if ($action === 'delete') {
+    $input = json_decode(file_get_contents('php://input'), true) ?? [];
+    $path = trim($input['path'] ?? $_POST['path'] ?? $_GET['path'] ?? '');
 
-// Validate uploaded file
-if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-    http_response_code(400);
-    $errCode = $_FILES['file']['error'] ?? 'missing';
-    echo json_encode(['error' => 'File upload error: code ' . $errCode]);
+    if ($path) {
+        $safePath = str_replace(['..', "\0"], '', $path);
+        $fullPath = dirname(__DIR__) . '/uploads/' . ltrim($safePath, '/');
+        if (file_exists($fullPath) && is_file($fullPath)) {
+            @unlink($fullPath);
+        }
+    }
+
+    echo json_encode(['success' => true]);
     exit();
 }
 
-$file = $_FILES['file'];
-$fileName = basename($file['name']);
-$cleanName = preg_replace('/[^\w.\-]+/', '_', $fileName);
+// 3. Upload file action
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $shopId = trim($_POST['shop_id'] ?? 'general');
+    $safeShopId = preg_replace('/[^A-Za-z0-9_-]+/', '_', $shopId);
 
-// Create upload directory on Hostinger: uploads/{shopId}/
-$uploadDir = dirname(__DIR__) . '/uploads/' . $shopId;
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
+    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        $err = $_FILES['file']['error'] ?? 'no file';
+        echo json_encode(['error' => 'File upload error: code ' . $err]);
+        exit();
+    }
 
-$uniqueFileName = bin2hex(random_bytes(8)) . '-' . $cleanName;
-$targetPath = $uploadDir . '/' . $uniqueFileName;
-$relativeStoragePath = $shopId . '/' . $uniqueFileName;
+    $file = $_FILES['file'];
+    $fileName = basename($file['name']);
+    $cleanName = preg_replace('/[^\w.\-]+/', '_', $fileName);
 
-if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Could not save file on Hostinger storage']);
-    exit();
-}
+    $uploadDir = dirname(__DIR__) . '/uploads/' . $safeShopId;
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
 
-$orderId = 'ORD-' . strtoupper(bin2hex(random_bytes(3)));
+    $uniqueName = bin2hex(random_bytes(6)) . '-' . $cleanName;
+    $targetPath = $uploadDir . '/' . $uniqueName;
+    $storagePath = $safeShopId . '/' . $uniqueName;
 
-$stmt = $pdo->prepare('INSERT INTO orders (
-    id, token_no, shop_id, customer, customer_phone, file_name, file_path,
-    pages, copies, color, sides, paper_size, binding, page_range, amount, status
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+    if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Could not save file on Hostinger storage']);
+        exit();
+    }
 
-$stmt->execute([
-    $orderId,
-    $tokenNo,
-    $shopId,
-    $customer,
-    $customerPhone ?: null,
-    $fileName,
-    $relativeStoragePath,
-    $pages,
-    $copies,
-    $color,
-    $sides,
-    $paperSize,
-    $binding,
-    $pageRange,
-    $amount,
-    'pending'
-]);
-
-echo json_encode([
-    'success' => true,
-    'order' => [
-        'id' => $orderId,
-        'tokenNo' => $tokenNo,
-        'amount' => $amount,
+    echo json_encode([
+        'success' => true,
+        'filePath' => $storagePath,
         'fileName' => $fileName,
-    ]
-]);
+        'url' => '/uploads/' . $storagePath,
+    ]);
+    exit();
+}
+
+http_response_code(405);
+echo json_encode(['error' => 'Method not allowed']);

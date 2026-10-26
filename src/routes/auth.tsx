@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { z } from "zod";
-import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -34,7 +34,6 @@ function AuthPage() {
   const navigate = useNavigate();
   const dest = redirect ?? "/dashboard";
 
-  // Default to signup if came from Get Started / register
   const [mode, setMode] = useState<"signin" | "signup">(
     initialMode || (redirect?.includes("register") ? "signup" : "signin")
   );
@@ -44,8 +43,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
-
-
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,62 +55,59 @@ function AuthPage() {
     setMsg(null);
     const go = () => navigate({ to: dest, replace: true });
 
-    // 1. Authenticate via Hostinger PHP/SQLite backend
+    // 100% Pure Supabase Auth
     try {
-      const res = await fetch(`/api/auth.php?action=${mode}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
           email: r.data.email,
           password: r.data.password,
-          display_name: name.trim() || undefined,
-        }),
-      });
+          options: {
+            data: { display_name: name.trim() || undefined },
+            emailRedirectTo: window.location.origin + "/auth",
+          },
+        });
 
-      const data = await res.json().catch(() => null);
-
-      if (res.ok && data?.token) {
-        localStorage.setItem("printex_token", data.token);
-        if (data.user) {
-          localStorage.setItem("printex_user", JSON.stringify(data.user));
+        if (error) {
+          setMsg({ kind: "err", text: error.message });
+        } else if (!data.session) {
+          setMsg({
+            kind: "ok",
+            text: "Account registered! Please check your email inbox to confirm your account, then sign in.",
+          });
+        } else {
+          go();
         }
-        setMsg({ kind: "ok", text: mode === "signup" ? "Account created! Opening shop setup…" : "Signed in successfully!" });
-        setBusy(false);
-        setTimeout(go, 300);
-        return;
-      }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: r.data.email,
+          password: r.data.password,
+        });
 
-      if (data?.error) {
-        setMsg({ kind: "err", text: data.error });
-        setBusy(false);
-        return;
+        if (error) {
+          setMsg({ kind: "err", text: error.message });
+        } else {
+          go();
+        }
       }
-    } catch (err) {
-      console.warn("Hostinger auth check failed, checking Supabase fallback...", err);
+    } catch (err: unknown) {
+      const e = err as Error;
+      setMsg({ kind: "err", text: e?.message || "Authentication failed. Please check your network connection." });
+    } finally {
+      setBusy(false);
     }
+  };
 
-    // 2. Supabase fallback
-    if (mode === "signup") {
-      const { data, error } = await supabase.auth.signUp({
-        ...r.data,
-        options: { emailRedirectTo: window.location.origin + "/auth" },
+  const google = async () => {
+    setMsg(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin + "/auth" },
       });
-      if (error) {
-        setMsg({ kind: "err", text: error.message });
-      } else if (!data.session) {
-        setMsg({ kind: "ok", text: "Confirmation link sent to your email. Please check your inbox to sign in." });
-      } else {
-        go();
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword(r.data);
-      if (error) {
-        setMsg({ kind: "err", text: error.message });
-      } else {
-        go();
-      }
+      if (error) setMsg({ kind: "err", text: error.message });
+    } catch {
+      setMsg({ kind: "err", text: "Google sign-in could not be opened." });
     }
-    setBusy(false);
   };
 
   return (
@@ -143,6 +137,11 @@ function AuthPage() {
         </div>
 
         <div className="card mt-6 space-y-4 p-6 md:p-8">
+          <button type="button" onClick={google} className="btn btn-outline w-full py-2.5 text-xs font-bold">
+            Continue with Google
+          </button>
+          <div className="text-center text-xs text-muted-foreground">or use your email & password</div>
+
           <form onSubmit={submit} noValidate className="space-y-4">
             {mode === "signup" && (
               <div>
