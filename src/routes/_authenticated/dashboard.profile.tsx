@@ -12,7 +12,7 @@ function Profile() {
   const [form, setForm] = useState<Shop>(shop);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  useEffect(() => setForm(shop), [shop]);
+  useEffect(() => setForm({ ...shop, doubleDiscount: 0 }), [shop]);
 
   const set = (k: keyof Shop, v: string | number | boolean) => setForm((f) => ({ ...f, [k]: v }));
   const qc = useQueryClient();
@@ -21,7 +21,7 @@ function Profile() {
     e.preventDefault();
     setState("saving");
     try {
-      await updateShop(form);
+      await updateShop({ ...form, doubleDiscount: 0 });
       await qc.invalidateQueries({ queryKey: ["my-shop"] });
       setState("saved");
       setTimeout(() => setState("idle"), 2500);
@@ -102,7 +102,7 @@ function Profile() {
           <h2 className="text-sm font-bold text-navy uppercase tracking-wider mb-4 border-b pb-2 flex items-center gap-1.5">
             <IndianRupee className="h-4 w-4 text-teal" /> Print Rates (Per Page)
           </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <L label="Black & White (₹/page)">
               <input
                 type="number"
@@ -121,16 +121,6 @@ function Profile() {
                 className="field"
                 value={form.priceColor}
                 onChange={(e) => set("priceColor", Number(e.target.value))}
-              />
-            </L>
-            <L label="Double-sided Discount (%)">
-              <input
-                type="number"
-                min={0}
-                max={90}
-                className="field"
-                value={Math.round(form.doubleDiscount * 100)}
-                onChange={(e) => set("doubleDiscount", Number(e.target.value) / 100)}
               />
             </L>
           </div>
