@@ -89,9 +89,15 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
-    touch-action: manipulation;
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  input, textarea, select {
+    color: var(--color-foreground) !important;
+    caret-color: var(--color-teal);
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
 }
 
 @utility btn {
@@ -118,8 +124,9 @@
   box-shadow: var(--shadow-card);
 }
 @utility field {
-  width: 100%; border: 1px solid var(--input); border-radius: var(--radius); background: var(--card);
-  padding: 0.65rem 0.85rem; font-size: 1rem; outline: none; transition: border-color .15s;
+  width: 100%; border: 1px solid var(--input); border-radius: var(--radius); background-color: var(--card) !important;
+  color: var(--color-foreground) !important; padding: 0.65rem 0.85rem; font-size: 1rem; outline: none; transition: border-color .15s;
+  pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important;
   &:focus { border-color: var(--ring); box-shadow: 0 0 0 2px var(--ring); }
 }
 @utility bg-grid {

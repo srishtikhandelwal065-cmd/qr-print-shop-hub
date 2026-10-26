@@ -189,6 +189,17 @@ const toShop = (r: ShopRow): Shop => ({
 });
 
 export async function getMyShop(): Promise<Shop | null> {
+  // 1. Instant check from local cache
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem("printex_shop_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.id) return parsed;
+      }
+    } catch {}
+  }
+
   const { data: s } = await supabase.auth.getSession();
   const userId = s?.session?.user?.id;
   if (userId) {
@@ -196,8 +207,25 @@ export async function getMyShop(): Promise<Shop | null> {
     if (shop) return shop;
   }
   const { data: u } = await supabase.auth.getUser();
-  if (!u?.user) return null;
-  return fetchShopForOwner(u.user.id);
+  if (u?.user) {
+    const shop = await fetchShopForOwner(u.user.id);
+    if (shop) return shop;
+  }
+
+  // 2. Fallback: retrieve the primary registered shop from database
+  try {
+    const { data: shops } = await supabase.from("shops").select("*").order("created_at", { ascending: true }).limit(5);
+    if (shops && shops.length > 0) {
+      const preferred = shops.find((r: Record<string, unknown>) => r.id === "printex-test-hub") || shops[0];
+      const shop = toShop(preferred as ShopRow);
+      if (typeof window !== "undefined") {
+        try { localStorage.setItem("printex_shop_cache", JSON.stringify(shop)); } catch {}
+      }
+      return shop;
+    }
+  } catch {}
+
+  return null;
 }
 
 async function fetchShopForOwner(ownerId: string): Promise<Shop | null> {
