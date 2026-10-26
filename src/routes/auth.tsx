@@ -48,18 +48,19 @@ function AuthPage() {
   const [msg, setMsg] = useState<{ kind: "err" | "ok"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // If already logged in, redirect directly to destination
+  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
+
   useEffect(() => {
     let active = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data?.session?.user) {
-        navigate({ to: dest, replace: true });
+      if (active && data?.session?.user?.email) {
+        setSignedInEmail(data.session.user.email);
       }
     });
     return () => {
       active = false;
     };
-  }, [dest, navigate]);
+  }, []);
 
   const go = async () => {
     await router.invalidate();
@@ -199,6 +200,18 @@ function AuthPage() {
         </div>
 
         <div className="card mt-6 space-y-4 p-6 md:p-8">
+          {signedInEmail && (
+            <div className="flex items-center justify-between rounded-xl border border-teal/40 bg-teal/10 p-3 text-xs">
+              <div>
+                <span className="text-muted-foreground">Signed in as </span>
+                <strong className="text-foreground">{signedInEmail}</strong>
+              </div>
+              <Link to="/dashboard" className="btn btn-teal text-xs py-1.5 px-3 font-bold">
+                Go to Dashboard →
+              </Link>
+            </div>
+          )}
+
           {/* ⚡ Instant Test Login Box */}
           <div className="rounded-2xl border-2 border-teal/30 bg-teal/5 p-4 text-left">
             <div className="flex items-center justify-between">

@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_authenticated")({
       // Supabase network failure
     }
 
+    if (location.pathname === "/auth") return;
     throw redirect({ to: "/auth", search: { redirect: location.pathname } });
   },
   component: () => <Outlet />,
