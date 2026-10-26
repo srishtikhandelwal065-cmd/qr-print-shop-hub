@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:static": "vite build --config vite.config.static.ts && cp dist/index.source.html ./index.html && cp -r dist/assets/* ./assets/",
+    "build:static": "vite build --config vite.config.static.ts && cp dist/index.source.html ./index.html && rm -rf ./assets && cp -r dist/assets ./assets",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
