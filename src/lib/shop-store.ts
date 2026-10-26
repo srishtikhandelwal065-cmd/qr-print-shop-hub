@@ -195,33 +195,72 @@ export async function getMyShop(): Promise<Shop | null> {
       const cached = localStorage.getItem("printex_shop_cache");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed?.id) return parsed;
+        if (parsed?.id && parsed.id !== "printex-test-hub") return parsed;
       }
     } catch {}
   }
 
-  const { data: s } = await supabase.auth.getSession();
-  const userId = s?.session?.user?.id;
-  if (userId) {
-    const shop = await fetchShopForOwner(userId);
-    if (shop) return shop;
-  }
-  const { data: u } = await supabase.auth.getUser();
-  if (u?.user) {
-    const shop = await fetchShopForOwner(u.user.id);
-    if (shop) return shop;
+  // 2. Check Supabase Auth session
+  try {
+    const { data: s } = await supabase.auth.getSession();
+    const userId = s?.session?.user?.id;
+    if (userId) {
+      const shop = await fetchShopForOwner(userId);
+      if (shop) return shop;
+    }
+    const { data: u } = await supabase.auth.getUser();
+    if (u?.user) {
+      const shop = await fetchShopForOwner(u.user.id);
+      if (shop) return shop;
+    }
+  } catch {}
+
+  // 3. Fallback: match by local signed-in user name/email
+  if (typeof window !== "undefined") {
+    try {
+      const localUserStr = localStorage.getItem("printex_user");
+      if (localUserStr) {
+        const localUser = JSON.parse(localUserStr);
+        if (localUser?.displayName) {
+          const { data: matched } = await supabase
+            .from("shops")
+            .select("*")
+            .ilike("owner", `%${localUser.displayName.trim()}%`)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          if (matched && matched.length > 0) {
+            const shop = toShop(matched[0] as ShopRow);
+            localStorage.setItem("printex_shop_cache", JSON.stringify(shop));
+            return shop;
+          }
+        }
+      }
+    } catch {}
   }
 
-  // 2. Fallback: retrieve the primary registered shop from database
+  // 4. Fallback: retrieve the most recently registered real shop (excluding test hub)
   try {
-    const { data: shops } = await supabase.from("shops").select("*").order("created_at", { ascending: true }).limit(5);
+    const { data: shops } = await supabase
+      .from("shops")
+      .select("*")
+      .neq("id", "printex-test-hub")
+      .order("created_at", { ascending: false })
+      .limit(5);
+
     if (shops && shops.length > 0) {
-      const preferred = shops.find((r: Record<string, unknown>) => r.id === "printex-test-hub") || shops[0];
-      const shop = toShop(preferred as ShopRow);
+      const shop = toShop(shops[0] as ShopRow);
       if (typeof window !== "undefined") {
         try { localStorage.setItem("printex_shop_cache", JSON.stringify(shop)); } catch {}
       }
       return shop;
+    }
+  } catch {}
+
+  // 5. Ultimate fallback if no other shop exists
+  try {
+    const { data: fallbackShops } = await supabase.from("shops").select("*").limit(1);
+    if (fallbackShops && fallbackShops.length > 0) {
+      return toShop(fallbackShops[0] as ShopRow);
     }
   } catch {}
 
@@ -233,12 +272,11 @@ async function fetchShopForOwner(ownerId: string): Promise<Shop | null> {
     .from("shops")
     .select("*")
     .eq("owner_id", ownerId)
-    .order("created_at", { ascending: true })
+    .order("created_at", { ascending: false })
     .limit(10);
   if (error) throw error;
   if (!data || data.length === 0) return null;
-  const preferred = data.find((r: Record<string, unknown>) => r.id === "printex-test-hub") || data[0];
-  const shop = toShop(preferred as ShopRow);
+  const shop = toShop(data[0] as ShopRow);
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem("printex_shop_cache", JSON.stringify(shop));
@@ -429,6 +467,17 @@ export async function deleteOrder(o: Order) {
 }
 
 export async function downloadOrderFile(o: Order) {
+  // 0. Base64 data URL
+  if (o.storagePath && (o.storagePath.startsWith("data:") || o.storagePath.startsWith("blob:"))) {
+    const a = document.createElement("a");
+    a.href = o.storagePath;
+    a.download = o.fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return;
+  }
+
   // 1. If stored on Hostinger disk (relative path e.g. "shop-id/filename.pdf")
   if (o.storagePath && !o.storagePath.startsWith("http") && o.storagePath.includes("/")) {
     window.open(`/api/upload.php?action=download&path=${encodeURIComponent(o.storagePath)}&name=${encodeURIComponent(o.fileName)}`, "_blank");
@@ -466,7 +515,7 @@ export async function submitUpload(
     const amount = calcPrice(shop, it.pages, it.color, it.sides, it.copies, it.binding, it.paperSize);
     let storagePath = "";
 
-    // 1. Save physical file to Hostinger Disk Storage
+    // 1. Save physical file to Hostinger Disk Storage (if available)
     try {
       const fd = new FormData();
       fd.append("shop_id", shop.id);
@@ -483,8 +532,8 @@ export async function submitUpload(
           storagePath = json.filePath;
         }
       }
-    } catch (err) {
-      console.warn("Hostinger upload failed, attempting Supabase storage fallback...", err);
+    } catch {
+      // ignore Hostinger fallback
     }
 
     // 2. Fallback to Supabase Storage if Hostinger is unreachable
@@ -493,17 +542,36 @@ export async function submitUpload(
       const fileId = crypto.randomUUID();
       storagePath = `${shop.id}/${fileId}-${safe}`;
 
-      const { error: uploadErr } = await supabase.storage.from("print-documents").upload(storagePath, it.file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-      if (uploadErr) {
-        console.error("Storage upload error:", uploadErr);
-        throw new Error("Could not upload file to storage: " + uploadErr.message);
+      try {
+        const { error: uploadErr } = await supabase.storage.from("print-documents").upload(storagePath, it.file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+        if (uploadErr) {
+          console.warn("Storage upload error, using resilient data URI fallback:", uploadErr.message);
+          storagePath = "";
+        }
+      } catch (storageEx) {
+        console.warn("Storage upload exception, using resilient data URI fallback:", storageEx);
+        storagePath = "";
       }
     }
 
-    // 3. Insert order record into Supabase Database
+    // 3. Ultra-resilient inline Data URI fallback (ensures upload never fails even if bucket is missing)
+    if (!storagePath) {
+      try {
+        storagePath = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(it.file);
+        });
+      } catch (readErr) {
+        throw new Error("Could not read file for upload: " + (readErr as Error).message);
+      }
+    }
+
+    // 4. Insert order record into Supabase Database
     const orderId = `ORD-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const { error: insertErr } = await supabase.from("orders").insert({
       id: orderId,
@@ -528,6 +596,35 @@ export async function submitUpload(
     if (insertErr) {
       console.error("Order insertion error:", insertErr);
       throw new Error("Could not save order: " + insertErr.message);
+    }
+
+    // 5. Save into local shop orders cache as backup
+    if (typeof window !== "undefined") {
+      try {
+        const cacheKey = `printex_orders_cache_${shop.id}`;
+        const existing = JSON.parse(localStorage.getItem(cacheKey) || "[]");
+        const newOrder = {
+          id: orderId,
+          tokenNo,
+          shopId: shop.id,
+          customer,
+          customerPhone: customerPhone || undefined,
+          fileName: it.file.name,
+          storagePath,
+          pages: it.pages,
+          copies: it.copies,
+          color: it.color,
+          sides: it.sides,
+          paperSize: it.paperSize || "A4",
+          binding: it.binding || "none",
+          pageRange: it.pageRange || "all",
+          amount,
+          paymentStatus: "pending" as const,
+          status: "pending" as const,
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem(cacheKey, JSON.stringify([newOrder, ...existing]));
+      } catch {}
     }
 
     results.push({

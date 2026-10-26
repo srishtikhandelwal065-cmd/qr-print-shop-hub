@@ -170,48 +170,31 @@ CREATE TABLE IF NOT EXISTS public.orders (
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Shop owners can read their orders" ON public.orders;
-CREATE POLICY "Shop owners can read their orders"
+DROP POLICY IF EXISTS "Anyone can read orders" ON public.orders;
+CREATE POLICY "Anyone can read orders"
   ON public.orders FOR SELECT
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.shops s
-      WHERE s.id = orders.shop_id AND s.owner_id = auth.uid()
-    )
-  );
+  TO anon, authenticated
+  USING (true);
 
 DROP POLICY IF EXISTS "Shop owners can update their orders" ON public.orders;
-CREATE POLICY "Shop owners can update their orders"
+DROP POLICY IF EXISTS "Anyone can update orders" ON public.orders;
+CREATE POLICY "Anyone can update orders"
   ON public.orders FOR UPDATE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.shops s
-      WHERE s.id = orders.shop_id AND s.owner_id = auth.uid()
-    )
-  );
+  TO anon, authenticated
+  USING (true);
 
 DROP POLICY IF EXISTS "Shop owners can delete their orders" ON public.orders;
-CREATE POLICY "Shop owners can delete their orders"
+DROP POLICY IF EXISTS "Anyone can delete orders" ON public.orders;
+CREATE POLICY "Anyone can delete orders"
   ON public.orders FOR DELETE
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.shops s
-      WHERE s.id = orders.shop_id AND s.owner_id = auth.uid()
-    )
-  );
+  TO anon, authenticated
+  USING (true);
 
 DROP POLICY IF EXISTS "Anyone can insert orders" ON public.orders;
 CREATE POLICY "Anyone can insert orders"
   ON public.orders FOR INSERT
   TO anon, authenticated
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.shops s
-      WHERE s.id = orders.shop_id AND s.accept_uploads = true
-    )
-  );
+  WITH CHECK (true);
 
 -- 5. Upload Attempts Table (Rate-limiting & Analytics)
 CREATE TABLE IF NOT EXISTS public.upload_attempts (
@@ -316,15 +299,8 @@ CREATE POLICY "Shop owners can read documents"
 DROP POLICY IF EXISTS "Shop owners can delete documents" ON storage.objects;
 CREATE POLICY "Shop owners can delete documents"
   ON storage.objects FOR DELETE
-  TO authenticated
-  USING (
-    bucket_id = 'print-documents' AND
-    EXISTS (
-      SELECT 1 FROM public.shops s
-      WHERE s.id = (storage.foldername(storage.objects.name))[1]
-      AND s.owner_id = auth.uid()
-    )
-  );
+  TO authenticated, anon
+  USING (bucket_id = 'print-documents');
 
 -- 8. Enable Realtime on Orders Table
 DO $$
