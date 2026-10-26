@@ -35,14 +35,14 @@ function Home() {
           </nav>
           <div className="hidden items-center gap-2 md:flex">
             <Link to="/dashboard" className="btn btn-outline">Open dashboard</Link>
-            <Link to="/auth" search={{ mode: "signup", redirect: "/register" }} className="btn btn-primary">Get Started</Link>
+            <Link to="/auth" search={{ mode: "signin", redirect: "/dashboard" }} className="btn btn-primary">Get Started</Link>
           </div>
           <button className="md:hidden" onClick={() => setOpen(!open)} aria-label="Menu">{open ? <X /> : <Menu />}</button>
         </div>
         {open && (
           <div className="border-t px-4 py-4 md:hidden">
             {nav.map(([l, h]) => <a key={h} href={h} onClick={() => setOpen(false)} className="block py-2 font-medium">{l}</a>)}
-            <Link to="/auth" search={{ mode: "signup", redirect: "/register" }} className="btn btn-primary mt-2 w-full">Get Started</Link>
+            <Link to="/auth" search={{ mode: "signin", redirect: "/dashboard" }} className="btn btn-primary mt-2 w-full">Get Started</Link>
           </div>
         )}
       </header>
@@ -61,7 +61,7 @@ function Home() {
             No more WhatsApp chaos or pen-drive viruses. Customers scan your shop QR, upload files, choose print options — you see every order with the price calculated.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link to="/auth" search={{ mode: "signup", redirect: "/register" }} className="btn btn-teal px-6 py-3"><QrCode className="h-4 w-4" /> Get My Shop QR Code</Link>
+            <Link to="/auth" search={{ mode: "signin", redirect: "/dashboard" }} className="btn btn-teal px-6 py-3"><QrCode className="h-4 w-4" /> Get My Shop QR Code</Link>
             <button onClick={() => setFindOpen(true)} className="btn btn-outline px-6 py-3"><Upload className="h-4 w-4" /> Find Your Shop to Upload Files</button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">Free to start · Setup in 2 minutes · No app download for customers</p>
