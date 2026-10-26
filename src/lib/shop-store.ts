@@ -210,7 +210,13 @@ async function fetchShopForOwner(ownerId: string): Promise<Shop | null> {
   if (error) throw error;
   if (!data || data.length === 0) return null;
   const preferred = data.find((r: Record<string, unknown>) => r.id === "printex-test-hub") || data[0];
-  return toShop(preferred as ShopRow);
+  const shop = toShop(preferred as ShopRow);
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("printex_shop_cache", JSON.stringify(shop));
+    } catch {}
+  }
+  return shop;
 }
 
 export async function searchShops(q: string): Promise<Shop[]> {
@@ -282,7 +288,7 @@ export async function updateShop(shop: Shop) {
 export async function listOrders(shopId: string): Promise<Order[]> {
   const { data, error } = await supabase.from("orders").select("*").eq("shop_id", shopId).order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((r: Record<string, unknown>) => ({
+  const list = (data ?? []).map((r: Record<string, unknown>) => ({
     id: String(r.id),
     tokenNo: String(r.token_no || String(r.id).slice(-4).toUpperCase()),
     shopId: String(r.shop_id),
@@ -302,6 +308,14 @@ export async function listOrders(shopId: string): Promise<Order[]> {
     status: (r.status as OrderStatus) || "pending",
     createdAt: String(r.created_at),
   }));
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(`printex_orders_cache_${shopId}`, JSON.stringify(list));
+    } catch {}
+  }
+
+  return list;
 }
 
 export async function setOrderStatus(id: string, status: OrderStatus) {

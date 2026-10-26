@@ -38,7 +38,17 @@ export function OrdersTable({
   const { data: orders = null, error, isRefetching, refetch } = useQuery({
     queryKey: key,
     queryFn: () => listOrders(shopId),
-    refetchInterval: 10000,
+    initialData: () => {
+      if (typeof window === "undefined") return undefined;
+      try {
+        const cached = localStorage.getItem(`printex_orders_cache_${shopId}`);
+        return cached ? JSON.parse(cached) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
+    staleTime: 1000 * 30,
+    refetchInterval: 15000,
   });
 
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
