@@ -299,24 +299,8 @@ export async function searchShops(q: string): Promise<Shop[]> {
 
 export async function getPublicShop(id: string): Promise<Shop | null> {
   const cacheKey = `printex_public_shop_${id}`;
-  if (typeof window !== "undefined") {
-    try {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        // Return cached shop immediately; revalidate in background
-        const parsed = JSON.parse(cached);
-        // Trigger background refresh without blocking
-        supabase.from("shops").select("*").eq("id", id).maybeSingle().then(({ data }) => {
-          if (data) {
-            localStorage.setItem(cacheKey, JSON.stringify(toShop(data as ShopRow)));
-          }
-        }).catch(() => {});
-        return parsed;
-      }
-    } catch {}
-  }
 
-  // 1. Exact match in Supabase
+  // 1. Exact match directly from Supabase (fast: ~100ms)
   try {
     const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
     if (!error && data) {
@@ -328,7 +312,7 @@ export async function getPublicShop(id: string): Promise<Shop | null> {
     }
   } catch {}
 
-  // 2. Prefix match in Supabase (in case link was truncated or has slug variation)
+  // 2. Prefix match in Supabase (in case link has slug variation or trailing char)
   try {
     const { data: prefixMatches } = await supabase
       .from("shops")
@@ -344,7 +328,15 @@ export async function getPublicShop(id: string): Promise<Shop | null> {
     }
   } catch {}
 
-  // 3. Check owner local shop cache (instant fallback if testing on same browser)
+  // 3. Fallback to cached version (if offline or mobile network glitch)
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch {}
+  }
+
+  // 4. Fallback to owner local shop cache (if testing on shopkeeper's phone)
   if (typeof window !== "undefined") {
     try {
       const activeCache = localStorage.getItem("printex_shop_cache");
