@@ -78,7 +78,8 @@ function AuthPage() {
       if (error) {
         setMsg({ kind: "err", text: error.message });
       } else {
-        await go();
+        await router.invalidate();
+        navigate({ to: "/dashboard", replace: true });
       }
     } catch (err: unknown) {
       const e = err as Error;
@@ -145,7 +146,9 @@ function AuthPage() {
         if (error) {
           setMsg({ kind: "err", text: error.message });
         } else {
-          await go();
+          await router.invalidate();
+          const target = dest === "/register" ? "/dashboard" : dest;
+          navigate({ to: target, replace: true });
         }
       }
     } catch (err: unknown) {

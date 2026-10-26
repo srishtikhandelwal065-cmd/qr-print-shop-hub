@@ -189,11 +189,28 @@ const toShop = (r: ShopRow): Shop => ({
 });
 
 export async function getMyShop(): Promise<Shop | null> {
+  const { data: s } = await supabase.auth.getSession();
+  const userId = s?.session?.user?.id;
+  if (userId) {
+    const shop = await fetchShopForOwner(userId);
+    if (shop) return shop;
+  }
   const { data: u } = await supabase.auth.getUser();
-  if (!u.user) return null;
-  const { data, error } = await supabase.from("shops").select("*").eq("owner_id", u.user.id).maybeSingle();
+  if (!u?.user) return null;
+  return fetchShopForOwner(u.user.id);
+}
+
+async function fetchShopForOwner(ownerId: string): Promise<Shop | null> {
+  const { data, error } = await supabase
+    .from("shops")
+    .select("*")
+    .eq("owner_id", ownerId)
+    .order("created_at", { ascending: true })
+    .limit(10);
   if (error) throw error;
-  return data ? toShop(data as ShopRow) : null;
+  if (!data || data.length === 0) return null;
+  const preferred = data.find((r: Record<string, unknown>) => r.id === "printex-test-hub") || data[0];
+  return toShop(preferred as ShopRow);
 }
 
 export async function searchShops(q: string): Promise<Shop[]> {

@@ -4,7 +4,13 @@ import { getMyShop, type Shop } from "@/lib/shop-store";
 export const myShopKey = ["my-shop"] as const;
 
 export function useMyShop() {
-  return useQuery({ queryKey: myShopKey, queryFn: getMyShop });
+  return useQuery({
+    queryKey: myShopKey,
+    queryFn: getMyShop,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 30,
+    retry: 1,
+  });
 }
 
 // Only used inside the dashboard, which waits for the shop before rendering children.
