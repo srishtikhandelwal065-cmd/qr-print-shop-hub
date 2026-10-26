@@ -197,7 +197,7 @@ export async function getMyShop(): Promise<Shop | null> {
   const token = getAuthToken();
   if (token) {
     try {
-      const res = await fetch("/api/shops.php?my_shop=1", {
+      const res = await fetch(`/api/shops.php?my_shop=1&token=${encodeURIComponent(token)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -264,7 +264,7 @@ export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsap
   const token = getAuthToken();
   if (token) {
     try {
-      const res = await fetch("/api/shops.php", {
+      const res = await fetch(`/api/shops.php?token=${encodeURIComponent(token)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(input),
@@ -303,7 +303,7 @@ export async function updateShop(shop: Shop) {
   const token = getAuthToken();
   if (token) {
     try {
-      const res = await fetch("/api/shops.php", {
+      const res = await fetch(`/api/shops.php?token=${encodeURIComponent(token)}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(shop),

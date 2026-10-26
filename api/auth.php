@@ -8,7 +8,7 @@ $input = json_decode(file_get_contents('php://input'), true) ?? [];
 if ($action === 'signup') {
     $email = trim(strtolower($input['email'] ?? ''));
     $password = $input['password'] ?? '';
-    $name = trim($input['display_name'] ?? explode('@', $email)[0]);
+    $name = trim($input['display_name'] ?? $input['name'] ?? explode('@', $email)[0]);
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         http_response_code(400);
@@ -36,6 +36,8 @@ if ($action === 'signup') {
     $stmt = $pdo->prepare('INSERT INTO users (id, email, password_hash, display_name, token) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([$userId, $email, $hash, $name, $token]);
 
+    @setcookie('printex_token', $token, time() + 86400 * 30, '/');
+
     echo json_encode([
         'user' => ['id' => $userId, 'email' => $email, 'display_name' => $name],
         'token' => $token,
@@ -61,6 +63,8 @@ if ($action === 'signin') {
     $stmt = $pdo->prepare('UPDATE users SET token = ? WHERE id = ?');
     $stmt->execute([$token, $user['id']]);
 
+    @setcookie('printex_token', $token, time() + 86400 * 30, '/');
+
     echo json_encode([
         'user' => ['id' => $user['id'], 'email' => $user['email'], 'display_name' => $user['display_name']],
         'token' => $token,
@@ -76,6 +80,17 @@ if ($action === 'me') {
         exit();
     }
     echo json_encode(['user' => $user]);
+    exit();
+}
+
+if ($action === 'signout') {
+    $user = getAuthUser($pdo);
+    if ($user) {
+        $stmt = $pdo->prepare('UPDATE users SET token = NULL WHERE id = ?');
+        $stmt->execute([$user['id']]);
+    }
+    @setcookie('printex_token', '', time() - 3600, '/');
+    echo json_encode(['success' => true]);
     exit();
 }
 

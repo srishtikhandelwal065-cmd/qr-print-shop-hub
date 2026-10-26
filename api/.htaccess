@@ -1,0 +1,5 @@
+# Protect database and configuration files
+<FilesMatch "(?i)\.(db|sqlite|sqlite3|sql|sample\.php)$">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>

@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_authenticated")({
       const token = localStorage.getItem("printex_token");
       if (token) {
         try {
-          const res = await fetch("/api/auth.php?action=me", {
+          const res = await fetch(`/api/auth.php?action=me&token=${encodeURIComponent(token)}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
