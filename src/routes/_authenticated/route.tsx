@@ -4,11 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    if (typeof window !== "undefined") {
-      const localUser = localStorage.getItem("printex_user");
-      if (localUser) return;
-    }
-
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session?.user) return;
@@ -16,6 +11,12 @@ export const Route = createFileRoute("/_authenticated")({
       if (data?.user) return;
     } catch {
       // Supabase network failure
+    }
+
+    if (typeof window !== "undefined") {
+      const localUser = localStorage.getItem("printex_user");
+      const localToken = localStorage.getItem("printex_token");
+      if (localUser && localToken) return;
     }
 
     if (location.pathname === "/auth") return;

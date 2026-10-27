@@ -68,6 +68,7 @@ function DashboardLayout() {
   const signOut = async () => {
     localStorage.removeItem("printex_token");
     localStorage.removeItem("printex_user");
+    localStorage.removeItem("printex_shop_cache");
     await qc.cancelQueries();
     qc.clear();
     try {

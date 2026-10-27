@@ -1,12 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   QrCode, Upload, Search, Bell, FileText, IndianRupee, Clock, CheckCircle2, Smartphone,
   LayoutDashboard, MessageCircle, Calculator, Shield, Star, Menu, X, Mail, Phone, MapPin,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DEMO_SHOP, searchShops } from "@/lib/shop-store";
+import { DEMO_SHOP, searchShops, getMyShop } from "@/lib/shop-store";
+import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/")({
@@ -22,8 +23,30 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
+
+  // Smart Redirection: If registered shop owner is already logged in, redirect to dashboard
+  useEffect(() => {
+    let active = true;
+    const checkAuth = async () => {
+      try {
+        const { data: s } = await supabase.auth.getSession();
+        if (s?.session?.user) {
+          const shop = await getMyShop();
+          if (active && shop?.id && shop.id !== "printex-test-hub") {
+            navigate({ to: "/dashboard", replace: true });
+          }
+        }
+      } catch {}
+    };
+    checkAuth();
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   const nav = [["Features", "#features"], ["Reviews", "#reviews"], ["Contact", "#contact"]];
   return (
     <div className="min-h-screen bg-background">

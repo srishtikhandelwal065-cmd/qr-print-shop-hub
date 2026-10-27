@@ -189,7 +189,52 @@ const toShop = (r: ShopRow): Shop => ({
 });
 
 export async function getMyShop(): Promise<Shop | null> {
-  // 1. Instant check from local cache
+  // 1. Identify currently authenticated user (Supabase session or verified local auth)
+  let userId: string | null = null;
+  let userEmail: string | null = null;
+  let userDisplayName: string | null = null;
+
+  try {
+    const { data: s } = await supabase.auth.getSession();
+    if (s?.session?.user) {
+      userId = s.session.user.id;
+      userEmail = s.session.user.email || null;
+      userDisplayName = s.session.user.user_metadata?.display_name || null;
+    } else {
+      const { data: u } = await supabase.auth.getUser();
+      if (u?.user) {
+        userId = u.user.id;
+        userEmail = u.user.email || null;
+        userDisplayName = u.user.user_metadata?.display_name || null;
+      }
+    }
+  } catch {}
+
+  // Local storage check for authenticated session
+  if (!userId && typeof window !== "undefined") {
+    try {
+      const localUserStr = localStorage.getItem("printex_user");
+      const localToken = localStorage.getItem("printex_token");
+      if (localUserStr && localToken) {
+        const localUser = JSON.parse(localUserStr);
+        if (localUser?.id) userId = localUser.id;
+        if (localUser?.email) userEmail = localUser.email;
+        if (localUser?.displayName) userDisplayName = localUser.displayName;
+      }
+    } catch {}
+  }
+
+  // If no user is authenticated, user has no shop
+  if (!userId && !userEmail) {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem("printex_shop_cache");
+      } catch {}
+    }
+    return null;
+  }
+
+  // 2. Check cached shop if already loaded
   if (typeof window !== "undefined") {
     try {
       const cached = localStorage.getItem("printex_shop_cache");
@@ -200,69 +245,37 @@ export async function getMyShop(): Promise<Shop | null> {
     } catch {}
   }
 
-  // 2. Check Supabase Auth session
-  try {
-    const { data: s } = await supabase.auth.getSession();
-    const userId = s?.session?.user?.id;
-    if (userId) {
+  // 3. Query Supabase for shop owned by this authenticated user
+  if (userId) {
+    try {
       const shop = await fetchShopForOwner(userId);
       if (shop) return shop;
-    }
-    const { data: u } = await supabase.auth.getUser();
-    if (u?.user) {
-      const shop = await fetchShopForOwner(u.user.id);
-      if (shop) return shop;
-    }
-  } catch {}
+    } catch {}
+  }
 
-  // 3. Fallback: match by local signed-in user name/email
-  if (typeof window !== "undefined") {
+  // 4. Fallback match by owner display name/email if owner_id was unpopulated
+  if (userDisplayName || userEmail) {
     try {
-      const localUserStr = localStorage.getItem("printex_user");
-      if (localUserStr) {
-        const localUser = JSON.parse(localUserStr);
-        if (localUser?.displayName) {
-          const { data: matched } = await supabase
-            .from("shops")
-            .select("*")
-            .ilike("owner", `%${localUser.displayName.trim()}%`)
-            .order("created_at", { ascending: false })
-            .limit(1);
-          if (matched && matched.length > 0) {
-            const shop = toShop(matched[0] as ShopRow);
-            localStorage.setItem("printex_shop_cache", JSON.stringify(shop));
-            return shop;
+      const query = (userDisplayName || userEmail?.split("@")[0] || "").trim();
+      if (query.length >= 2) {
+        const { data: matched } = await supabase
+          .from("shops")
+          .select("*")
+          .ilike("owner", `%${query}%`)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (matched && matched.length > 0) {
+          const shop = toShop(matched[0] as ShopRow);
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.setItem("printex_shop_cache", JSON.stringify(shop));
+            } catch {}
           }
+          return shop;
         }
       }
     } catch {}
   }
-
-  // 4. Fallback: retrieve the most recently registered real shop (excluding test hub)
-  try {
-    const { data: shops } = await supabase
-      .from("shops")
-      .select("*")
-      .neq("id", "printex-test-hub")
-      .order("created_at", { ascending: false })
-      .limit(5);
-
-    if (shops && shops.length > 0) {
-      const shop = toShop(shops[0] as ShopRow);
-      if (typeof window !== "undefined") {
-        try { localStorage.setItem("printex_shop_cache", JSON.stringify(shop)); } catch {}
-      }
-      return shop;
-    }
-  } catch {}
-
-  // 5. Ultimate fallback if no other shop exists
-  try {
-    const { data: fallbackShops } = await supabase.from("shops").select("*").limit(1);
-    if (fallbackShops && fallbackShops.length > 0) {
-      return toShop(fallbackShops[0] as ShopRow);
-    }
-  } catch {}
 
   return null;
 }

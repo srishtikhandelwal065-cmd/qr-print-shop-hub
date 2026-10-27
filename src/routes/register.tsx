@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
-import { Loader2, LocateFixed, ArrowLeft, CheckCircle2, Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
+import { Loader2, LocateFixed, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, LogIn } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { STATES } from "@/lib/shop-store";
+import { STATES, getMyShop, type Shop } from "@/lib/shop-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { myShopKey } from "@/lib/use-shop";
@@ -28,25 +28,15 @@ const schema = z.object({
   whatsapp: z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
   address: z.string().trim().min(5, "Enter the shop address").max(200),
   state: z.string().min(1, "Select your state"),
-  referral: z.string().trim().max(20).regex(/^[A-Za-z0-9]*$/, "Letters and numbers only").optional(),
 });
 type Form = z.infer<typeof schema>;
-
-const SAMPLE_SHOP: Form = {
-  email: "owner@myprintshop.in",
-  password: "Password123!",
-  name: "Sharma Xerox & Printing Hub",
-  owner: "Rakesh Sharma",
-  whatsapp: "9876543210",
-  address: "Shop 12, FC Road, Shivajinagar",
-  state: "Maharashtra",
-  referral: "",
-};
 
 function RegisterPage() {
   const navigate = useNavigate();
   const router = useRouter();
   const qc = useQueryClient();
+
+  // All fields empty by default
   const [form, setForm] = useState<Form>({
     email: "",
     password: "",
@@ -55,25 +45,40 @@ function RegisterPage() {
     whatsapp: "",
     address: "",
     state: "",
-    referral: "",
   });
+
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isDuplicateEmail, setIsDuplicateEmail] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState("");
+
+  // Smart redirection: If already authenticated and registered, go straight to dashboard
+  useEffect(() => {
+    let active = true;
+    const checkExisting = async () => {
+      try {
+        const { data: s } = await supabase.auth.getSession();
+        if (s?.session?.user) {
+          const shop = await getMyShop();
+          if (active && shop?.id && shop.id !== "printex-test-hub") {
+            navigate({ to: "/dashboard", replace: true });
+          }
+        }
+      } catch {}
+    };
+    checkExisting();
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
 
   const set = (k: keyof Form, v: string) => {
     setForm((f) => ({ ...f, [k]: v }));
     setErrors((e) => ({ ...e, [k]: undefined }));
     setErrorMessage("");
-  };
-
-  const fillSampleShop = () => {
-    setForm(SAMPLE_SHOP);
-    setErrors({});
-    setErrorMessage("");
-    setLocError("");
+    setIsDuplicateEmail(false);
   };
 
   const detect = () => {
@@ -99,6 +104,8 @@ function RegisterPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
+    setIsDuplicateEmail(false);
+
     const r = schema.safeParse(form);
     if (!r.success) {
       const errs: typeof errors = {};
@@ -111,39 +118,64 @@ function RegisterPage() {
     }
 
     setStatus("saving");
-    try {
-      // 1. Create Supabase Auth in background (with timeout so it never hangs)
-      try {
-        const signUpPromise = supabase.auth.signUp({
-          email: r.data.email,
-          password: r.data.password,
-          options: {
-            data: { display_name: r.data.owner },
-          },
-        });
-        await Promise.race([
-          signUpPromise,
-          new Promise((resolve) => setTimeout(resolve, 1500)),
-        ]);
-      } catch {}
 
-      // 2. Local verified session (immediate zero-wait access)
+    try {
+      // 1. Sign up user via Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: r.data.email,
+        password: r.data.password,
+        options: {
+          data: { display_name: r.data.owner },
+        },
+      });
+
+      // 2. Prevent Duplicate Accounts: Check if email already registered
+      if (authError) {
+        const lower = authError.message.toLowerCase();
+        if (
+          lower.includes("already registered") ||
+          lower.includes("already exists") ||
+          authError.status === 422 ||
+          authError.name === "AuthApiError"
+        ) {
+          setStatus("error");
+          setIsDuplicateEmail(true);
+          setErrorMessage(`An account with ${r.data.email} already exists. Please sign in instead.`);
+          return;
+        }
+        throw authError;
+      }
+
+      if (authData?.user && Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
+        setStatus("error");
+        setIsDuplicateEmail(true);
+        setErrorMessage(`An account with ${r.data.email} already exists. Please sign in instead.`);
+        return;
+      }
+
+      const userId = authData?.user?.id || null;
+
+      // 3. Set verified local session
       const localUser = {
-        id: `owner-${Date.now()}`,
+        id: userId || `owner-${Date.now()}`,
         email: r.data.email,
         displayName: r.data.owner,
       };
       localStorage.setItem("printex_user", JSON.stringify(localUser));
-      localStorage.setItem("printex_token", `token-${Date.now()}`);
+      if (authData?.session?.access_token) {
+        localStorage.setItem("printex_token", authData.session.access_token);
+      } else {
+        localStorage.setItem("printex_token", `token-${Date.now()}`);
+      }
 
-      // 3. Create shop record
+      // 4. Generate unique shop ID
       const cleanSlug = r.data.name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-") || "my-shop";
       const newShopId = `${cleanSlug}-${Math.floor(100 + Math.random() * 900)}`;
 
-      const newShop = {
+      const newShop: Shop = {
         id: newShopId,
-        name: r.data.name,
         owner: r.data.owner,
+        name: r.data.name,
         whatsapp: r.data.whatsapp,
         upiId: "",
         address: r.data.address,
@@ -156,45 +188,33 @@ function RegisterPage() {
         priceLamination: 20,
         acceptUploads: true,
         showWhatsapp: true,
-        referral: r.data.referral || null,
         createdAt: new Date().toISOString(),
       };
 
-      // 4. Save to Supabase (try RPC create_print_shop first, then direct insert)
+      // 5. Insert shop record into Supabase linked to authenticated owner
       try {
-        const { error: rpcErr } = await supabase.rpc("create_print_shop", {
-          p_id: newShop.id,
-          p_name: newShop.name,
-          p_owner: newShop.owner,
-          p_whatsapp: newShop.whatsapp,
-          p_address: newShop.address,
-          p_state: newShop.state,
-          p_referral: newShop.referral || null,
+        await supabase.from("shops").insert({
+          id: newShop.id,
+          owner_id: userId,
+          name: newShop.name,
+          owner: newShop.owner,
+          whatsapp: newShop.whatsapp,
+          address: newShop.address,
+          state: newShop.state,
+          price_bw: 2,
+          price_color: 10,
+          double_discount: 0.25,
+          price_spiral: 30,
+          price_staple: 5,
+          price_lamination: 20,
+          accept_uploads: true,
+          show_whatsapp: true,
         });
-
-        if (rpcErr) {
-          await supabase.from("shops").insert({
-            id: newShop.id,
-            name: newShop.name,
-            owner: newShop.owner,
-            whatsapp: newShop.whatsapp,
-            address: newShop.address,
-            state: newShop.state,
-            referral: newShop.referral,
-            price_bw: 2,
-            price_color: 10,
-            double_discount: 0.25,
-            price_spiral: 30,
-            price_staple: 5,
-            price_lamination: 20,
-            accept_uploads: true,
-            show_whatsapp: true,
-          });
-        }
       } catch (dbErr) {
-        console.warn("Database sync warning:", dbErr);
+        console.warn("Database shop insert notice:", dbErr);
       }
 
+      // 6. Update cache and query state
       localStorage.setItem("printex_shop_cache", JSON.stringify(newShop));
       qc.setQueryData(myShopKey, newShop);
       await qc.invalidateQueries({ queryKey: myShopKey });
@@ -210,13 +230,16 @@ function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-secondary">
-      {/* Header */}
+      {/* Header with clear Sign In option */}
       <header className="border-b bg-background sticky top-0 z-20">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
           <Logo />
           <div className="flex items-center gap-3">
-            <Link to="/auth" className="text-xs font-semibold text-muted-foreground hover:text-foreground">
-              Sign In
+            <Link
+              to="/auth"
+              className="btn btn-outline text-xs font-bold py-1.5 px-3.5 border-teal/40 text-teal hover:bg-teal-soft"
+            >
+              <LogIn className="h-3.5 w-3.5" /> Sign In
             </Link>
             <Link to="/" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-3.5 w-3.5" /> Back to Home
@@ -226,7 +249,7 @@ function RegisterPage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-8">
-        {/* Title */}
+        {/* Title & Sign In prompt */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/10 px-3 py-1 text-xs font-bold text-teal mb-2">
@@ -237,23 +260,47 @@ function RegisterPage() {
               Register your print shop in 2 minutes to get your counter standee QR code.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={fillSampleShop}
-            className="btn btn-outline text-xs py-2 px-3 self-start sm:self-auto font-semibold shrink-0 text-teal border-teal/30 hover:bg-teal/10"
+          <Link
+            to="/auth"
+            className="text-xs font-semibold text-teal hover:underline self-start sm:self-auto shrink-0 flex items-center gap-1"
           >
-            <Sparkles className="h-3.5 w-3.5 text-teal" /> Auto-fill Sample Shop
-          </button>
+            Already have an account? <span className="font-bold underline">Sign In</span>
+          </Link>
         </div>
 
+        {/* Duplicate Account Alert Banner with Direct Sign In Action */}
+        {isDuplicateEmail && (
+          <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-teal/10 border-2 border-teal/40 p-4 text-navy shadow-sm">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="h-5 w-5 text-teal shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold">
+                  Account already exists for <span className="underline">{form.email}</span>
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  You don't need to register again. Sign in directly to access your shop dashboard.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/auth"
+              search={{ email: form.email }}
+              className="btn btn-teal text-xs py-2 px-4 font-bold shrink-0 text-center inline-flex items-center justify-center gap-1.5"
+            >
+              <LogIn className="h-3.5 w-3.5" /> Sign In Now →
+            </Link>
+          </div>
+        )}
+
         {/* Global Error Banner */}
-        {errorMessage && (
+        {!isDuplicateEmail && errorMessage && (
           <div className="mt-4 flex items-center gap-2 rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-xs sm:text-sm font-medium text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
+        {/* Success Banner */}
         {status === "done" && (
           <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs sm:text-sm font-medium text-emerald-800">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
@@ -413,22 +460,6 @@ function RegisterPage() {
             </div>
           </Field>
 
-          {/* Referral Code */}
-          <div>
-            <Field label="Referral Code (Optional)" error={errors.referral}>
-              <input
-                id="reg-referral"
-                name="printex_referral"
-                className="field uppercase"
-                placeholder="e.g. PRX2026"
-                value={form.referral}
-                onChange={(e) => set("referral", e.target.value)}
-                autoComplete="off"
-                style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
-              />
-            </Field>
-          </div>
-
           {/* Submit Button */}
           <div className="pt-2">
             <button
@@ -438,7 +469,7 @@ function RegisterPage() {
             >
               {status === "saving" ? (
                 <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Creating your shop & QR standee…
+                  <Loader2 className="h-4 w-4 animate-spin" /> Registering your shop…
                 </span>
               ) : (
                 "Register Shop & Get QR Code →"
@@ -447,9 +478,10 @@ function RegisterPage() {
           </div>
         </form>
 
+        {/* Clear bottom Sign In link */}
         <div className="mt-6 text-center">
-          <Link to="/auth" className="text-sm font-semibold text-teal hover:underline">
-            Already registered? Sign in to your shop →
+          <Link to="/auth" className="text-sm font-semibold text-teal hover:underline inline-flex items-center gap-1">
+            <LogIn className="h-4 w-4" /> Already registered? Sign in to your shop →
           </Link>
         </div>
       </main>
