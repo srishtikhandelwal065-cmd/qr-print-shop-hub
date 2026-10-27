@@ -1,5 +1,7 @@
 import { jsPDF } from "jspdf";
 import type { Shop } from "./shop-store";
+import posterTemplateCleanUrl from "@/assets/poster-template-clean.png";
+import posterTemplateRawUrl from "@/assets/poster-template.png";
 
 export interface GeneratePosterOptions {
   shop: Shop;
@@ -89,11 +91,44 @@ export function formatPosterAddress(address?: string, state?: string): { line1: 
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Only set crossOrigin for cross-origin URLs to prevent browser CORS errors on same-origin/relative assets
+    if (src.startsWith("http://") || src.startsWith("https://")) {
+      try {
+        if (typeof window !== "undefined" && new URL(src).origin !== window.location.origin) {
+          img.crossOrigin = "anonymous";
+        }
+      } catch {}
+    }
     img.onload = () => resolve(img);
-    img.onerror = (e) => reject(new Error(`Failed to load poster template from ${src}`));
+    img.onerror = () => reject(new Error(`Failed to load poster template from ${src}`));
     img.src = src;
   });
+}
+
+/**
+ * Loads the poster template from bundled assets or URL fallbacks
+ */
+async function loadTemplateImage(): Promise<{ img: HTMLImageElement; isClean: boolean }> {
+  const candidates: Array<{ src: string; isClean: boolean }> = [
+    { src: posterTemplateCleanUrl, isClean: true },
+    { src: "/poster-template-clean.png", isClean: true },
+    { src: "./poster-template-clean.png", isClean: true },
+    { src: posterTemplateRawUrl, isClean: false },
+    { src: "/poster-template.png", isClean: false },
+    { src: "./poster-template.png", isClean: false },
+  ];
+
+  for (const candidate of candidates) {
+    if (!candidate.src) continue;
+    try {
+      const img = await loadImage(candidate.src);
+      return { img, isClean: candidate.isClean };
+    } catch {
+      // Try next candidate
+    }
+  }
+
+  throw new Error("Failed to load poster template image from all sources");
 }
 
 /**
@@ -109,21 +144,8 @@ export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOp
     // Continue if font API unavailable
   }
 
-  // 1. Load the clean background template
-  const baseUrl = import.meta.env.BASE_URL || "/";
-  const cleanTemplateUrl = `${baseUrl.replace(/\/$/, "")}/poster-template-clean.png`;
-  const fallbackTemplateUrl = `${baseUrl.replace(/\/$/, "")}/poster-template.png`;
-
-  let templateImg: HTMLImageElement;
-  let isClean = true;
-
-  try {
-    templateImg = await loadImage(cleanTemplateUrl);
-  } catch {
-    // Fallback to original template if clean is unavailable
-    templateImg = await loadImage(fallbackTemplateUrl);
-    isClean = false;
-  }
+  // 1. Load the background template (bundled asset or fallback)
+  const { img: templateImg, isClean } = await loadTemplateImage();
 
   // 2. High-resolution canvas (2x of 682x1024 = 1364x2048)
   const canvas = document.createElement("canvas");
