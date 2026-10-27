@@ -193,9 +193,15 @@ function Home() {
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p className="font-semibold text-foreground">Contact</p>
-            <p className="flex items-center gap-2"><Mail className="h-4 w-4" /> hello@printex.in</p>
-            <p className="flex items-center gap-2"><Phone className="h-4 w-4" /> +91 98765 43210</p>
-            <p className="flex items-center gap-2"><MapPin className="h-4 w-4" /> Pune, India</p>
+            <a href="mailto:contact.printex@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <Mail className="h-4 w-4" /> contact.printex@gmail.com
+            </a>
+            <a href="tel:+918957759289" className="flex items-center gap-2 hover:text-foreground transition-colors">
+              <Phone className="h-4 w-4" /> +91 89577 59289
+            </a>
+            <p className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Delhi, India
+            </p>
           </div>
         </div>
         <p className="border-t py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Printex. All rights reserved.</p>

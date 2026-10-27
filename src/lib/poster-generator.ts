@@ -285,7 +285,7 @@ export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOp
   // Phone icon is around x=840, y=1864
   // Text starts at x=916
   // ==========================================
-  const formattedPhone = formatPosterPhone(shop.whatsapp) || "+91 98765 43210";
+  const formattedPhone = formatPosterPhone(shop.whatsapp) || "+91 89577 59289";
   const phoneStartX = 916;
   const maxPhoneWidth = 370;
 
