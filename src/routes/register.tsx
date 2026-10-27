@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Loader2, LocateFixed, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, LogIn } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { PasswordInput } from "@/components/PasswordInput";
 import { STATES, getMyShop, type Shop } from "@/lib/shop-store";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -333,18 +334,15 @@ function RegisterPage() {
               </Field>
 
               <Field label="Account Password *" error={errors.password}>
-                <input
+                <PasswordInput
                   id="reg-password"
                   name="printex_owner_password"
-                  type="password"
-                  className="field"
                   placeholder="At least 6 characters"
                   value={form.password}
                   onChange={(e) => set("password", e.target.value)}
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
                   required
                 />
               </Field>

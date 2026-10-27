@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, Store, LogIn, AlertCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { PasswordInput } from "@/components/PasswordInput";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyShop, DEMO_SHOP } from "@/lib/shop-store";
 import { useQueryClient } from "@tanstack/react-query";
@@ -212,18 +213,15 @@ function AuthPage() {
               <label htmlFor="owner-password" className="mb-1 block text-xs font-bold text-navy uppercase tracking-wider">
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="owner-password"
                 name="printex_owner_password"
-                className="field"
-                type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
-                style={{ color: "#0f172a", backgroundColor: "#ffffff", caretColor: "#0f172a" }}
                 required
               />
             </div>
