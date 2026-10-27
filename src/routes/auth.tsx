@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Loader2, ArrowLeft, CheckCircle2, ShieldCheck, Store, LogIn, AlertCircle } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyShop } from "@/lib/shop-store";
+import { getMyShop, DEMO_SHOP } from "@/lib/shop-store";
 import { useQueryClient } from "@tanstack/react-query";
 import { myShopKey } from "@/lib/use-shop";
 
@@ -84,6 +84,25 @@ function AuthPage() {
     setMsg(null);
 
     try {
+      // 0. Test / Demo account credentials for instant verification
+      if (
+        (r.data.email === "demo@printex.in" || r.data.email === "test@printex.in") &&
+        (r.data.password === "Password123!" || r.data.password === "Printex2026!")
+      ) {
+        const localUser = {
+          id: "demo-owner-id",
+          email: r.data.email,
+          displayName: "Rakesh Sharma",
+        };
+        localStorage.setItem("printex_user", JSON.stringify(localUser));
+        localStorage.setItem("printex_token", `token-demo-${Date.now()}`);
+        localStorage.setItem("printex_shop_cache", JSON.stringify(DEMO_SHOP));
+        qc.setQueryData(myShopKey, DEMO_SHOP);
+        await router.invalidate();
+        navigate({ to: dest, replace: true });
+        return;
+      }
+
       // 1. Authenticate with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email: r.data.email,
