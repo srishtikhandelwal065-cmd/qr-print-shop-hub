@@ -3,12 +3,18 @@
 -- Paste this entire script into your Supabase SQL Editor and click "Run".
 -- ==============================================================================
 
+-- QUICK MIGRATION FOR EXISTING TABLES:
+-- If your tables are already created, run these two lines to add the email column:
+ALTER TABLE public.shops ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT DEFAULT '';
+
 -- 1. Enable UUID Extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 2. Create Profiles Table (Linked to Supabase Auth)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT DEFAULT '',
   display_name TEXT NOT NULL DEFAULT '',
   avatar_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -39,9 +45,9 @@ CREATE POLICY "Users can insert own profile"
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, display_name)
-  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email))
-  ON CONFLICT (id) DO NOTHING;
+  INSERT INTO public.profiles (id, email, display_name)
+  VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'display_name', NEW.email))
+  ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -55,6 +61,7 @@ CREATE TRIGGER on_auth_user_created
 CREATE TABLE IF NOT EXISTS public.shops (
   id TEXT PRIMARY KEY, -- Slug, e.g. "sharma-xerox-pune"
   owner_id UUID,
+  email TEXT DEFAULT '',
   name TEXT NOT NULL,
   owner TEXT NOT NULL,
   whatsapp TEXT NOT NULL,

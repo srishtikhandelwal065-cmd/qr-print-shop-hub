@@ -187,6 +187,7 @@ function RegisterPage() {
 
       const newShop: Shop = {
         id: newShopId,
+        email: r.data.email,
         owner: r.data.owner,
         name: r.data.name,
         whatsapp: r.data.whatsapp,
@@ -206,9 +207,10 @@ function RegisterPage() {
 
       // 5. Insert shop record into Supabase linked to authenticated owner
       try {
-        await supabase.from("shops").insert({
+        const shopPayload: Record<string, unknown> = {
           id: newShop.id,
           owner_id: userId,
+          email: r.data.email,
           name: newShop.name,
           owner: newShop.owner,
           whatsapp: newShop.whatsapp,
@@ -222,9 +224,25 @@ function RegisterPage() {
           price_lamination: 20,
           accept_uploads: true,
           show_whatsapp: true,
-        });
+        };
+        const { error: insertErr } = await supabase.from("shops").insert(shopPayload);
+        if (insertErr && (insertErr.message?.includes("email") || (insertErr as { code?: string }).code === "PGRST204")) {
+          delete shopPayload.email;
+          await supabase.from("shops").insert(shopPayload);
+        }
       } catch (dbErr) {
         console.warn("Database shop insert notice:", dbErr);
+      }
+
+      // Also upsert profile row if authenticated
+      if (userId) {
+        try {
+          await supabase.from("profiles").upsert({
+            id: userId,
+            email: r.data.email,
+            display_name: r.data.owner,
+          });
+        } catch {}
       }
 
       // 6. Update cache and query state

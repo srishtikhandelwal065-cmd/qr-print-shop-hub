@@ -5,7 +5,7 @@ import { useMyShop } from "@/lib/use-shop";
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, FileText, QrCode, Store, Settings, Menu, X, ExternalLink,
-  LogOut, Loader2, Volume2, VolumeX, BellRing
+  LogOut, Loader2, Volume2, VolumeX, BellRing, Mail
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { playNewOrderChime } from "@/lib/shop-store";
@@ -126,6 +126,12 @@ function DashboardLayout() {
           <span className="h-2 w-2 rounded-full bg-emerald-500" title="Online" />
         </div>
         <p className="truncate text-xs text-muted-foreground">{shop.owner}</p>
+        {shop.email && (
+          <p className="truncate text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5" title={shop.email}>
+            <Mail className="h-3 w-3 shrink-0 text-teal" />
+            <span className="truncate">{shop.email}</span>
+          </p>
+        )}
         <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>Status:</span>
           <span className={`font-semibold ${shop.acceptUploads ? "text-emerald-600" : "text-amber-600"}`}>

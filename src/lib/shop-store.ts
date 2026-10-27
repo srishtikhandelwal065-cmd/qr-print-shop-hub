@@ -10,6 +10,7 @@ export type OrderStatus = "pending" | "printing" | "ready" | "collected";
 
 export interface Shop {
   id: string;
+  email?: string;
   name: string;
   owner: string;
   whatsapp: string;
@@ -71,6 +72,7 @@ export const DEMO_SHOP: Shop = {
   id: "sharma-xerox-pune",
   name: "Sharma Xerox & Printing Hub",
   owner: "Rakesh Sharma",
+  email: "sharma.xerox@gmail.com",
   whatsapp: "9876543210",
   upiId: "sharma.xerox@upi",
   address: "Shop 12, FC Road, Shivajinagar, Pune",
@@ -152,6 +154,7 @@ type ShopRow = {
   id: string;
   name: string;
   owner?: string;
+  email?: string | null;
   whatsapp: string;
   upi_id?: string | null;
   address: string;
@@ -170,6 +173,7 @@ type ShopRow = {
 
 const toShop = (r: ShopRow): Shop => ({
   id: r.id,
+  email: r.email ?? undefined,
   name: r.name,
   owner: r.owner ?? "",
   whatsapp: r.whatsapp,
@@ -249,7 +253,10 @@ export async function getMyShop(): Promise<Shop | null> {
   if (userId) {
     try {
       const shop = await fetchShopForOwner(userId);
-      if (shop) return shop;
+      if (shop) {
+        if (!shop.email && userEmail) shop.email = userEmail;
+        return shop;
+      }
     } catch {}
   }
 
@@ -388,7 +395,7 @@ export async function registerShop(input: Pick<Shop, "name" | "owner" | "whatsap
 }
 
 export async function updateShop(shop: Shop) {
-  const { error } = await supabase.from("shops").update({
+  const payload: Record<string, unknown> = {
     name: shop.name,
     owner: shop.owner,
     whatsapp: shop.whatsapp,
@@ -403,8 +410,33 @@ export async function updateShop(shop: Shop) {
     price_lamination: shop.priceLamination,
     accept_uploads: shop.acceptUploads,
     show_whatsapp: shop.showWhatsapp,
-  }).eq("id", shop.id);
-  if (error) throw error;
+  };
+  if (shop.email !== undefined) {
+    payload.email = shop.email;
+  }
+  const { error } = await supabase.from("shops").update(payload).eq("id", shop.id);
+  if (error) {
+    // If the column email has not been added to supabase yet, gracefully retry without it
+    if (error.message?.includes("email") || (error as { code?: string }).code === "PGRST204") {
+      delete payload.email;
+      const { error: retryErr } = await supabase.from("shops").update(payload).eq("id", shop.id);
+      if (retryErr) throw retryErr;
+    } else {
+      throw error;
+    }
+  }
+
+  // Also update public.profiles if user is logged in
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (u?.user) {
+      await supabase.from("profiles").upsert({
+        id: u.user.id,
+        email: shop.email || u.user.email,
+        display_name: shop.owner || u.user.user_metadata?.display_name || "",
+      });
+    }
+  } catch {}
 }
 
 export async function listOrders(shopId: string): Promise<Order[]> {

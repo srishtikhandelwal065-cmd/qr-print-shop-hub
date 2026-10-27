@@ -12,7 +12,19 @@ function Profile() {
   const [form, setForm] = useState<Shop>(shop);
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
 
-  useEffect(() => setForm({ ...shop, doubleDiscount: 0 }), [shop]);
+  useEffect(() => {
+    let emailVal = shop.email || "";
+    if (!emailVal && typeof window !== "undefined") {
+      try {
+        const u = localStorage.getItem("printex_user");
+        if (u) {
+          const parsed = JSON.parse(u);
+          if (parsed?.email) emailVal = parsed.email;
+        }
+      } catch {}
+    }
+    setForm({ ...shop, doubleDiscount: 0, email: emailVal });
+  }, [shop]);
 
   const set = (k: keyof Shop, v: string | number | boolean) => setForm((f) => ({ ...f, [k]: v }));
   const qc = useQueryClient();
@@ -52,6 +64,15 @@ function Profile() {
             <L label="Owner Name">
               <input className="field" value={form.owner} onChange={(e) => set("owner", e.target.value)} />
             </L>
+            <L label="Gmail / Contact Email Address">
+              <input
+                type="email"
+                className="field"
+                placeholder="e.g. yourshop@gmail.com"
+                value={form.email || ""}
+                onChange={(e) => set("email", e.target.value.trim())}
+              />
+            </L>
             <L label="WhatsApp Mobile Number">
               <input
                 className="field"
@@ -60,13 +81,15 @@ function Profile() {
                 onChange={(e) => set("whatsapp", e.target.value.replace(/\D/g, "").slice(0, 10))}
               />
             </L>
-            <L label="State">
-              <select className="field" value={form.state} onChange={(e) => set("state", e.target.value)}>
-                {STATES.map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </L>
+            <div className="sm:col-span-2">
+              <L label="State">
+                <select className="field" value={form.state} onChange={(e) => set("state", e.target.value)}>
+                  {STATES.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </L>
+            </div>
           </div>
           <div className="mt-4">
             <L label="Shop Address (Appears on Customer Upload page)">
