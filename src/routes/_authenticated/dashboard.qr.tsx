@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { Download, Printer, Copy, Check, ExternalLink, Sparkles, Smartphone, FileUp, CheckCircle2 } from "lucide-react";
+import { Download, Printer, Copy, Check, ExternalLink, Sparkles, Smartphone, FileUp, CheckCircle2, FileDown } from "lucide-react";
 import { useShop } from "@/lib/use-shop";
 import { shopUploadUrl } from "@/lib/shop-store";
+import { downloadShopPosterPdf } from "@/lib/poster-generator";
 
 export const Route = createFileRoute("/_authenticated/dashboard/qr")({ component: QrPage });
 
@@ -11,7 +12,9 @@ function QrPage() {
   const [shop] = useShop();
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const posterQrRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     setUrl(shopUploadUrl(shop.id));
@@ -24,6 +27,22 @@ function QrPage() {
     a.href = c.toDataURL("image/png");
     a.download = `${shop.id}-counter-qr.png`;
     a.click();
+  };
+
+  const downloadPoster = async () => {
+    try {
+      setIsGeneratingPoster(true);
+      const qrCanvas = posterQrRef.current || wrap.current?.querySelector("canvas");
+      if (!qrCanvas) {
+        throw new Error("QR Code is not ready yet");
+      }
+      await downloadShopPosterPdf({ shop, qrCanvas });
+    } catch (err) {
+      console.error("Failed to generate shop poster:", err);
+      alert("Could not generate poster. Please try again.");
+    } finally {
+      setIsGeneratingPoster(false);
+    }
   };
 
   const copy = async () => {
@@ -124,6 +143,22 @@ function QrPage() {
             <button onClick={download} className="btn btn-outline w-full py-2.5 text-xs font-bold min-h-[44px]">
               <Download className="h-4 w-4" /> Download QR Image
             </button>
+            <button
+              onClick={downloadPoster}
+              disabled={isGeneratingPoster}
+              className="btn btn-outline w-full py-2.5 text-xs font-bold min-h-[44px] flex items-center justify-center gap-2 border-teal/40 hover:bg-teal-soft hover:text-teal transition-all"
+            >
+              {isGeneratingPoster ? (
+                <>
+                  <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  Generating Poster...
+                </>
+              ) : (
+                <>
+                  <FileDown className="h-4 w-4 text-teal" /> Download Poster (A4 PDF)
+                </>
+              )}
+            </button>
             <button onClick={copy} className="btn btn-outline w-full py-2.5 text-xs font-bold min-h-[44px]">
               {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
               {copied ? "Link Copied!" : "Copy Customer Link"}
@@ -143,6 +178,11 @@ function QrPage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Hidden high-resolution QR canvas for generating crisp print-ready A4 poster */}
+      <div style={{ position: "fixed", left: -9999, top: -9999, pointerEvents: "none", opacity: 0 }} aria-hidden="true">
+        {url && <QRCodeCanvas ref={posterQrRef} value={url} size={600} level="H" marginSize={2} />}
       </div>
     </div>
   );
