@@ -130,21 +130,33 @@ function RegisterPage() {
         },
       });
 
-      // 2. Prevent Duplicate Accounts: Check if email already registered
+      // 2. Prevent Duplicate Accounts & Handle Auth Errors properly
       if (authError) {
         const lower = authError.message.toLowerCase();
-        if (
+        const code = (authError as { code?: string }).code || "";
+        const isDuplicate =
           lower.includes("already registered") ||
           lower.includes("already exists") ||
-          authError.status === 422 ||
-          authError.name === "AuthApiError"
-        ) {
+          code === "user_already_exists";
+
+        if (isDuplicate) {
           setStatus("error");
           setIsDuplicateEmail(true);
           setErrorMessage(`An account with ${r.data.email} already exists. Please sign in instead.`);
           return;
         }
-        throw authError;
+
+        if (authError.status === 429 || lower.includes("rate limit") || code.includes("rate_limit")) {
+          setStatus("error");
+          setIsDuplicateEmail(false);
+          setErrorMessage("Supabase email rate limit exceeded. Please wait a few minutes or disable 'Confirm email' in Supabase Authentication settings.");
+          return;
+        }
+
+        setStatus("error");
+        setIsDuplicateEmail(false);
+        setErrorMessage(authError.message || "Failed to register account. Please try again.");
+        return;
       }
 
       if (authData?.user && Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
