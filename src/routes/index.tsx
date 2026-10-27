@@ -256,41 +256,106 @@ function DashboardPreview() {
     ["Rent_Agreement.pdf", 6, "B/W · Double", "ready", 9],
     ["Aadhaar_Card_Front.pdf", 1, "B/W · Single", "collected", 2],
   ] as const;
+
   return (
-    <div className="relative mx-auto mt-16 max-w-5xl text-left">
-      <div className="card overflow-hidden shadow-[var(--shadow-float)]">
-        <div className="flex items-center gap-2 border-b bg-secondary px-4 py-2.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" /><span className="h-2.5 w-2.5 rounded-full bg-warning/60" /><span className="h-2.5 w-2.5 rounded-full bg-success/60" />
-          <span className="ml-3 rounded-md bg-card px-3 py-0.5 text-xs text-muted-foreground">printex.in/dashboard</span>
+    <div className="relative mx-auto mt-10 sm:mt-16 max-w-5xl text-left">
+      <div className="card overflow-hidden shadow-[var(--shadow-float)] border">
+        {/* Browser Mockup Top Bar */}
+        <div className="flex items-center gap-2 border-b bg-secondary px-3.5 sm:px-4 py-2 sm:py-2.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-warning/60" />
+          <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+          <span className="ml-2 sm:ml-3 rounded-md bg-card px-2.5 sm:px-3 py-0.5 text-[11px] sm:text-xs font-mono text-muted-foreground truncate max-w-[200px] sm:max-w-none">
+            printex.in/dashboard
+          </span>
         </div>
+
         <div className="grid md:grid-cols-[180px_1fr]">
-          <aside className="hidden border-r p-4 md:block">
-            <p className="text-sm font-semibold">{DEMO_SHOP.name}</p>
+          {/* Desktop Sidebar */}
+          <aside className="hidden border-r p-4 md:block bg-card/50">
+            <p className="text-sm font-semibold truncate text-navy">{DEMO_SHOP.name}</p>
             {["Overview", "Print Orders", "My Shop QR", "Shop Profile", "Settings"].map((l, i) => (
-              <p key={l} className={`mt-2 rounded-lg px-2 py-1.5 text-xs ${i === 1 ? "bg-teal-soft font-semibold text-accent-foreground" : "text-muted-foreground"}`}>{l}</p>
+              <p
+                key={l}
+                className={`mt-2 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                  i === 1 ? "bg-teal-soft font-semibold text-teal" : "text-muted-foreground"
+                }`}
+              >
+                {l}
+              </p>
             ))}
           </aside>
-          <div className="p-4 md:p-6">
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              {[[FileText, "Today's orders", "24"], [Clock, "Pending", "6"], [CheckCircle2, "Ready", "9"], [IndianRupee, "Revenue", "₹1,840"]].map(([I, l, v]) => {
+
+          {/* Main Content Area */}
+          <div className="p-3.5 sm:p-5 md:p-6">
+            {/* Stat Cards: 2-column on mobile with tight gap, 4-column on desktop */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
+              {[
+                [FileText, "Today's orders", "24"],
+                [Clock, "Pending", "6"],
+                [CheckCircle2, "Ready", "9"],
+                [IndianRupee, "Revenue", "₹1,840"],
+              ].map(([I, l, v]) => {
                 const Ic = I as typeof FileText;
                 return (
-                  <div key={l as string} className="rounded-xl border p-3">
+                  <div key={l as string} className="rounded-xl border bg-card p-2.5 sm:p-3 shadow-xs">
                     <Ic className="h-4 w-4 text-teal" />
-                    <p className="mt-2 text-xs text-muted-foreground">{l as string}</p>
-                    <p className="font-display text-lg font-bold">{v as string}</p>
+                    <p className="mt-1.5 text-[10px] sm:text-xs text-muted-foreground truncate">{l as string}</p>
+                    <p className="font-display text-base sm:text-lg font-bold text-navy truncate">{v as string}</p>
                   </div>
                 );
               })}
             </div>
-            <div className="mt-4 overflow-x-auto rounded-xl border">
+
+            {/* Mobile View (< 640px): 100% responsive order cards that never cut off on phone screens */}
+            <div className="mt-3.5 space-y-2 sm:hidden">
+              <div className="flex items-center justify-between px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                <span>Recent Orders</span>
+                <span>Status & Price</span>
+              </div>
+              {rows.map(([f, p, t, s, a]) => (
+                <div key={f} className="rounded-xl border bg-card p-2.5 shadow-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold text-xs text-navy" title={f}>
+                        {f}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        {p} pages · {t}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-bold text-xs text-navy">₹{a}</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between border-t border-border/60 pt-2">
+                    <StatusBadge status={s} />
+                    <span className="text-[10px] text-muted-foreground">Token #{p * 7 + 10}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View (>= 640px): Full 5-column table */}
+            <div className="mt-4 hidden overflow-x-auto rounded-xl border sm:block">
               <table className="w-full text-xs">
-                <thead className="bg-secondary text-muted-foreground"><tr>{["File", "Pages", "Type", "Status", "Amount"].map((h) => <th key={h} className="px-3 py-2 text-left font-medium">{h}</th>)}</tr></thead>
-                <tbody>
+                <thead className="bg-secondary text-muted-foreground">
+                  <tr>
+                    {["File", "Pages", "Type", "Status", "Amount"].map((h) => (
+                      <th key={h} className="px-3.5 py-2.5 text-left font-medium">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
                   {rows.map(([f, p, t, s, a]) => (
-                    <tr key={f} className="border-t">
-                      <td className="px-3 py-2.5 font-medium">{f}</td><td className="px-3">{p}</td><td className="px-3 text-muted-foreground">{t}</td>
-                      <td className="px-3"><StatusBadge status={s} /></td><td className="px-3 font-semibold">₹{a}</td>
+                    <tr key={f} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-3.5 py-2.5 font-medium text-navy">{f}</td>
+                      <td className="px-3.5 text-muted-foreground">{p}</td>
+                      <td className="px-3.5 text-muted-foreground">{t}</td>
+                      <td className="px-3.5">
+                        <StatusBadge status={s} />
+                      </td>
+                      <td className="px-3.5 font-bold text-navy">₹{a}</td>
                     </tr>
                   ))}
                 </tbody>
