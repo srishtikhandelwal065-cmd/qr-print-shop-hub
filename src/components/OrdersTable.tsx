@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Printer, Download, Trash2, Loader2, Inbox, Search,
-  MessageCircle, Sparkles, RefreshCw, Check, CheckCircle2
+  MessageCircle, Sparkles, RefreshCw
 } from "lucide-react";
 import {
   listOrders, deleteOrder, downloadOrderFile, printOrderFile, setOrderStatus,
@@ -77,11 +77,10 @@ export function OrdersTable({
     }
   };
 
-  const togglePrinted = async (o: Order) => {
-    const isPrinted = o.status === "ready" || o.status === "collected";
-    const nextStatus: OrderStatus = isPrinted ? "pending" : "ready";
+  const markDone = async (o: Order) => {
+    const nextStatus: OrderStatus = "ready";
 
-    // 1. Optimistic UI update in React Query cache so Pending count and button update immediately
+    // 1. Optimistic UI update in React Query cache so Pending count and red styling update immediately
     const previousOrders = qc.getQueryData<Order[]>(key);
     const updatedOrders = (previousOrders || []).map((item) =>
       item.id === o.id ? { ...item, status: nextStatus } : item
@@ -96,11 +95,7 @@ export function OrdersTable({
 
     try {
       await setOrderStatus(o.id, nextStatus);
-      flash(
-        nextStatus === "ready"
-          ? `✓ Order #${o.tokenNo} marked as printed!`
-          : `Order #${o.tokenNo} returned to pending.`
-      );
+      flash(`✓ Order #${o.tokenNo} marked as done!`);
       await qc.invalidateQueries({ queryKey: key });
     } catch {
       if (previousOrders) {
@@ -184,157 +179,182 @@ export function OrdersTable({
         <>
           {/* Mobile Card Queue (< md) */}
           <div className="divide-y divide-border md:hidden">
-            {shown.map((o) => (
-              <div key={o.id} className="p-3.5 space-y-3 bg-card hover:bg-secondary/30 transition">
-                {/* Header Row: Token, Customer Name, Time, and Price */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`shrink-0 font-mono text-base font-extrabold px-2.5 py-1 rounded-xl border shadow-xs ${
-                      o.status === "ready" || o.status === "collected"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                        : "text-teal bg-teal-soft border-teal/30"
-                    }`}>
-                      #{o.tokenNo}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <p className="font-bold text-navy truncate text-sm">{o.customer}</p>
-                        {(o.status === "ready" || o.status === "collected") && (
-                          <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-[10px] font-bold">
-                            ✓ Printed
-                          </span>
-                        )}
+            {shown.map((o) => {
+              const isDone = o.status === "ready" || o.status === "collected";
+              return (
+                <div
+                  key={o.id}
+                  className={`p-3.5 space-y-3 transition ${
+                    isDone
+                      ? "bg-red-50/80 border-l-4 border-l-red-500"
+                      : "bg-card hover:bg-secondary/30"
+                  }`}
+                >
+                  {/* Header Row: Token, Customer Name, Time, and Price */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className={`shrink-0 font-mono text-base font-extrabold px-2.5 py-1 rounded-xl border shadow-xs ${
+                          isDone
+                            ? "bg-red-100 text-red-700 border-red-300"
+                            : "text-teal bg-teal-soft border-teal/30"
+                        }`}
+                      >
+                        #{o.tokenNo}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className={`font-bold truncate text-sm ${isDone ? "text-red-900 line-through opacity-80" : "text-navy"}`}>
+                            {o.customer}
+                          </p>
+                          {isDone && (
+                            <span className="shrink-0 rounded-full bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 text-[10px] font-bold">
+                              Printed
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                          <span>{new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                          {o.customerPhone && (
+                            <>
+                              <span>•</span>
+                              <span className="font-mono">{o.customerPhone}</span>
+                            </>
+                          )}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                        <span>{new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                        {o.customerPhone && (
-                          <>
-                            <span>•</span>
-                            <span className="font-mono">{o.customerPhone}</span>
-                          </>
-                        )}
-                      </p>
+                    </div>
+
+                    {/* Total Amount */}
+                    <div className="shrink-0 text-right">
+                      <span className={`font-display font-extrabold text-base ${isDone ? "text-red-700" : "text-navy"}`}>
+                        ₹{o.amount.toFixed(2)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Total Amount */}
-                  <div className="shrink-0 text-right">
-                    <span className="font-display font-extrabold text-navy text-base">
-                      ₹{o.amount.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
+                  {/* Document & Specs Details */}
+                  <div className={`rounded-xl p-2.5 space-y-2 text-xs border ${isDone ? "bg-red-100/40 border-red-200" : "bg-secondary/70"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-semibold text-foreground truncate text-xs" title={o.fileName}>
+                        📄 {o.fileName}
+                      </p>
+                      <span className={`shrink-0 font-bold text-[11px] ${isDone ? "text-red-600" : "text-teal"}`}>
+                        {o.pages} pg{o.pages > 1 ? "s" : ""}{o.copies > 1 ? ` × ${o.copies}` : ""}
+                      </span>
+                    </div>
 
-                {/* Document & Specs Details */}
-                <div className="rounded-xl bg-secondary/70 p-2.5 space-y-2 text-xs border">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-semibold text-foreground truncate text-xs" title={o.fileName}>
-                      📄 {o.fileName}
-                    </p>
-                    <span className="shrink-0 font-bold text-teal text-[11px]">
-                      {o.pages} pg{o.pages > 1 ? "s" : ""}{o.copies > 1 ? ` × ${o.copies}` : ""}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span
+                        className={`rounded-md px-2 py-0.5 font-bold text-[10px] uppercase ${
+                          isDone
+                            ? "bg-red-200/80 text-red-800 border border-red-300"
+                            : o.color === "color"
+                            ? "bg-amber-100 text-amber-800"
+                            : "bg-card text-foreground border"
+                        }`}
+                      >
+                        {o.color === "color" ? "Colour" : "B/W"}
+                      </span>
+                      <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {o.sides === "double" ? "Duplex" : "Single"}
+                      </span>
+                      <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {o.paperSize || "A4"}
+                      </span>
+                      {o.binding && o.binding !== "none" && (
+                        <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold capitalize ${isDone ? "bg-red-100 text-red-700 border-red-200" : "bg-teal-soft text-teal border-teal/20"}`}>
+                          • {o.binding} binding
+                        </span>
+                      )}
+                      {o.pageRange && o.pageRange !== "all" && (
+                        <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          Range: {o.pageRange}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    <span
-                      className={`rounded-md px-2 py-0.5 font-bold text-[10px] uppercase ${
-                        o.color === "color" ? "bg-amber-100 text-amber-800" : "bg-card text-foreground border"
+                  {/* Mobile Action Buttons */}
+                  <div className="flex items-center gap-2 pt-1">
+                    {/* Print Button - Disabled & Red if Done, Teal if Pending */}
+                    {isDone ? (
+                      <button
+                        disabled
+                        className="flex-1 py-2.5 px-3 text-xs font-bold flex items-center justify-center gap-2 rounded-xl bg-red-600 text-white opacity-90 cursor-not-allowed shadow-sm min-h-[44px]"
+                        title="Order already printed — cannot print again"
+                      >
+                        <Printer className="h-4 w-4" />
+                        <span>Printed #{o.tokenNo}</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handlePrint(o)}
+                        className="btn btn-teal flex-1 py-2.5 px-3 text-xs font-bold flex items-center justify-center gap-2 shadow-sm min-h-[44px]"
+                        title={`Open print page for Order #${o.tokenNo}`}
+                      >
+                        <Printer className="h-4 w-4" />
+                        <span>Print #{o.tokenNo}</span>
+                      </button>
+                    )}
+
+                    {/* Done Button - ONLY shown when NOT done (no tick icon) */}
+                    {!isDone && (
+                      <button
+                        onClick={() => markDone(o)}
+                        className="flex items-center justify-center px-4 py-2.5 rounded-xl font-bold text-xs border-2 border-teal bg-teal-soft/40 text-teal hover:bg-teal hover:text-white min-h-[44px] transition active:scale-95 shadow-xs"
+                        title="Mark order as done"
+                      >
+                        Done
+                      </button>
+                    )}
+
+                    {/* WhatsApp Customer */}
+                    {o.customerPhone && (
+                      <a
+                        href={`https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(`Hi ${o.customer}, your print order #${o.tokenNo} is ready at ${shopName}!`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="WhatsApp Customer"
+                        className={`grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border transition ${
+                          isDone
+                            ? "bg-red-100 text-red-600 border-red-200 hover:bg-red-200"
+                            : "bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20"
+                        }`}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </a>
+                    )}
+
+                    {/* Download */}
+                    <button
+                      title="Download raw file"
+                      onClick={() => download(o)}
+                      className={`grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border transition ${
+                        isDone
+                          ? "bg-red-100 text-red-600 border-red-200 hover:bg-red-200"
+                          : "bg-card text-muted-foreground hover:bg-secondary hover:text-foreground"
                       }`}
                     >
-                      {o.color === "color" ? "Colour" : "B/W"}
-                    </span>
-                    <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {o.sides === "double" ? "Duplex" : "Single"}
-                    </span>
-                    <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {o.paperSize || "A4"}
-                    </span>
-                    {o.binding && o.binding !== "none" && (
-                      <span className="rounded-md bg-teal-soft text-teal border border-teal/20 px-2 py-0.5 text-[10px] font-bold capitalize">
-                        • {o.binding} binding
-                      </span>
-                    )}
-                    {o.pageRange && o.pageRange !== "all" && (
-                      <span className="rounded-md bg-card border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        Range: {o.pageRange}
-                      </span>
-                    )}
+                      <Download className="h-4 w-4" />
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      title="Remove order"
+                      onClick={() => remove(o)}
+                      className={`grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border transition ${
+                        isDone
+                          ? "bg-red-100 text-red-600 border-red-200 hover:bg-red-200"
+                          : "bg-card text-muted-foreground hover:bg-destructive-soft hover:text-destructive"
+                      }`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-
-                {/* Mobile Action Buttons */}
-                <div className="flex items-center gap-2 pt-1">
-                  {/* Full prominent Print Button */}
-                  <button
-                    onClick={() => handlePrint(o)}
-                    className="btn btn-teal flex-1 py-2.5 px-3 text-xs font-bold flex items-center justify-center gap-2 shadow-sm min-h-[44px]"
-                    title={`Open print page for Order #${o.tokenNo}`}
-                  >
-                    <Printer className="h-4 w-4" />
-                    <span>Print #{o.tokenNo}</span>
-                  </button>
-
-                  {/* Tick / Mark Printed Toggle Button */}
-                  <button
-                    onClick={() => togglePrinted(o)}
-                    className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs border min-h-[44px] transition active:scale-95 shadow-xs ${
-                      o.status === "ready" || o.status === "collected"
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                        : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400"
-                    }`}
-                    title={
-                      o.status === "ready" || o.status === "collected"
-                        ? "Done! Click to mark as pending again"
-                        : "Mark order as done"
-                    }
-                  >
-                    {o.status === "ready" || o.status === "collected" ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 text-white" />
-                        <span>Done ✓</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 text-emerald-600 stroke-[2.5]" />
-                        <span>Done</span>
-                      </>
-                    )}
-                  </button>
-
-                  {/* WhatsApp Customer */}
-                  {o.customerPhone && (
-                    <a
-                      href={`https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(`Hi ${o.customer}, your print order #${o.tokenNo} is ready at ${shopName}!`)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="WhatsApp Customer"
-                      className="grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition"
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </a>
-                  )}
-
-                  {/* Download */}
-                  <button
-                    title="Download raw file"
-                    onClick={() => download(o)}
-                    className="grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition"
-                  >
-                    <Download className="h-4 w-4" />
-                  </button>
-
-                  {/* Delete */}
-                  <button
-                    title="Remove order"
-                    onClick={() => remove(o)}
-                    className="grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl border bg-card text-muted-foreground hover:bg-destructive-soft hover:text-destructive transition"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Desktop Table View (>= md) */}
@@ -351,162 +371,189 @@ export function OrdersTable({
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {shown.map((o) => (
-                  <tr key={o.id} className="hover:bg-secondary/40 transition">
-                    {/* Token & Customer */}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-mono text-base font-extrabold px-2.5 py-1 rounded-lg border ${
-                          o.status === "ready" || o.status === "collected"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                            : "text-teal bg-teal-soft border-teal/30"
-                        }`}>
-                          #{o.tokenNo}
-                        </span>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-navy truncate max-w-[130px]">{o.customer}</p>
-                            {(o.status === "ready" || o.status === "collected") && (
-                              <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-[10px] font-bold">
-                                ✓ Printed
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-muted-foreground">
-                            {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </p>
-                        </div>
-                      </div>
-                      {o.customerPhone && (
-                        <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span className="font-mono text-[11px]">{o.customerPhone}</span>
-                          <a
-                            href={`https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(`Hi ${o.customer}, your print order #${o.tokenNo} is ready at ${shopName}!`)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Message Customer on WhatsApp"
-                            className="text-[#25D366] hover:opacity-80"
+                {shown.map((o) => {
+                  const isDone = o.status === "ready" || o.status === "collected";
+                  return (
+                    <tr
+                      key={o.id}
+                      className={`transition ${
+                        isDone
+                          ? "bg-red-50/80 border-l-4 border-l-red-500 hover:bg-red-100/60"
+                          : "hover:bg-secondary/40"
+                      }`}
+                    >
+                      {/* Token & Customer */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`font-mono text-base font-extrabold px-2.5 py-1 rounded-lg border ${
+                              isDone
+                                ? "bg-red-100 text-red-700 border-red-300"
+                                : "text-teal bg-teal-soft border-teal/30"
+                            }`}
                           >
-                            <MessageCircle className="h-3.5 w-3.5" />
-                          </a>
+                            #{o.tokenNo}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <p className={`font-bold truncate max-w-[130px] ${isDone ? "text-red-900 line-through opacity-80" : "text-navy"}`}>
+                                {o.customer}
+                              </p>
+                              {isDone && (
+                                <span className="shrink-0 rounded-full bg-red-100 text-red-700 border border-red-300 px-2 py-0.5 text-[10px] font-bold">
+                                  Printed
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">
+                              {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                    </td>
+                        {o.customerPhone && (
+                          <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="font-mono text-[11px]">{o.customerPhone}</span>
+                            <a
+                              href={`https://wa.me/91${o.customerPhone}?text=${encodeURIComponent(`Hi ${o.customer}, your print order #${o.tokenNo} is ready at ${shopName}!`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Message Customer on WhatsApp"
+                              className={isDone ? "text-red-500 hover:opacity-80" : "text-[#25D366] hover:opacity-80"}
+                            >
+                              <MessageCircle className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
+                        )}
+                      </td>
 
-                    {/* Document Name */}
-                    <td className="px-4 py-3 max-w-[200px]">
-                      <p className="truncate font-medium text-foreground text-xs" title={o.fileName}>
-                        {o.fileName}
-                      </p>
-                      <button
-                        onClick={() => handlePrint(o)}
-                        className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-teal hover:underline"
-                      >
-                        <Printer className="h-3 w-3" /> Open Print View
-                      </button>
-                    </td>
-
-                    {/* Print Specs */}
-                    <td className="px-4 py-3 text-xs space-y-0.5">
-                      <div className="flex items-center gap-1">
-                        <span
-                          className={`rounded px-1.5 py-0.5 font-bold text-[10px] uppercase ${
-                            o.color === "color" ? "bg-amber-100 text-amber-800" : "bg-secondary text-foreground"
-                          }`}
-                        >
-                          {o.color === "color" ? "Colour" : "B/W"}
-                        </span>
-                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          {o.sides === "double" ? "Duplex" : "Single"}
-                        </span>
-                        <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          {o.paperSize || "A4"}
-                        </span>
-                      </div>
-                      {o.binding && o.binding !== "none" && (
-                        <p className="text-[11px] font-semibold text-teal capitalize">
-                          • {o.binding} binding
+                      {/* Document Name */}
+                      <td className="px-4 py-3 max-w-[200px]">
+                        <p className={`truncate font-medium text-xs ${isDone ? "text-red-900" : "text-foreground"}`} title={o.fileName}>
+                          {o.fileName}
                         </p>
-                      )}
-                      {o.pageRange && o.pageRange !== "all" && (
-                        <p className="text-[11px] text-muted-foreground">
-                          Range: <span className="font-mono font-medium">{o.pageRange}</span>
-                        </p>
-                      )}
-                    </td>
+                        {!isDone && (
+                          <button
+                            onClick={() => handlePrint(o)}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-teal hover:underline"
+                          >
+                            <Printer className="h-3 w-3" /> Open Print View
+                          </button>
+                        )}
+                      </td>
 
-                    {/* Pages & Copies */}
-                    <td className="px-4 py-3 text-xs font-semibold">
-                      <span>{o.pages} pg{o.pages > 1 ? "s" : ""}</span>
-                      {o.copies > 1 && <span className="text-teal font-bold"> × {o.copies} copies</span>}
-                    </td>
+                      {/* Print Specs */}
+                      <td className="px-4 py-3 text-xs space-y-0.5">
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`rounded px-1.5 py-0.5 font-bold text-[10px] uppercase ${
+                              isDone
+                                ? "bg-red-200/80 text-red-800 border border-red-300"
+                                : o.color === "color"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-secondary text-foreground"
+                            }`}
+                          >
+                            {o.color === "color" ? "Colour" : "B/W"}
+                          </span>
+                          <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {o.sides === "double" ? "Duplex" : "Single"}
+                          </span>
+                          <span className="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            {o.paperSize || "A4"}
+                          </span>
+                        </div>
+                        {o.binding && o.binding !== "none" && (
+                          <p className={`text-[11px] font-semibold capitalize ${isDone ? "text-red-700" : "text-teal"}`}>
+                            • {o.binding} binding
+                          </p>
+                        )}
+                        {o.pageRange && o.pageRange !== "all" && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Range: <span className="font-mono font-medium">{o.pageRange}</span>
+                          </p>
+                        )}
+                      </td>
 
-                    {/* Amount */}
-                    <td className="px-4 py-3 font-display font-bold text-navy text-sm">
-                      ₹{o.amount.toFixed(2)}
-                    </td>
+                      {/* Pages & Copies */}
+                      <td className="px-4 py-3 text-xs font-semibold">
+                        <span>{o.pages} pg{o.pages > 1 ? "s" : ""}</span>
+                        {o.copies > 1 && (
+                          <span className={isDone ? "text-red-600 font-bold" : "text-teal font-bold"}>
+                            {" "}× {o.copies} copies
+                          </span>
+                        )}
+                      </td>
 
-                    {/* Actions: Direct Print, Tick (Mark Printed), Download, and Delete */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {/* Direct Print Button with Token */}
-                        <button
-                          onClick={() => handlePrint(o)}
-                          className="btn btn-teal px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-sm hover:shadow"
-                          title={`Open print page for Order #${o.tokenNo}`}
-                        >
-                          <Printer className="h-3.5 w-3.5" />
-                          <span>Print #{o.tokenNo}</span>
-                        </button>
+                      {/* Amount */}
+                      <td className={`px-4 py-3 font-display font-bold text-sm ${isDone ? "text-red-700" : "text-navy"}`}>
+                        ₹{o.amount.toFixed(2)}
+                      </td>
 
-                        {/* Tick / Mark Printed Toggle Button */}
-                        <button
-                          onClick={() => togglePrinted(o)}
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition active:scale-95 shadow-xs border ${
-                            o.status === "ready" || o.status === "collected"
-                              ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
-                              : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400"
-                          }`}
-                          title={
-                            o.status === "ready" || o.status === "collected"
-                              ? "Done! Click to mark as pending again"
-                              : "Mark order as done"
-                          }
-                        >
-                          {o.status === "ready" || o.status === "collected" ? (
-                            <>
-                              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-                              <span>Done ✓</span>
-                            </>
+                      {/* Actions: Direct Print, Done, Download, and Delete */}
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {/* Direct Print Button with Token */}
+                          {isDone ? (
+                            <button
+                              disabled
+                              className="px-3 py-1.5 text-xs font-bold rounded-lg bg-red-600 text-white flex items-center gap-1.5 opacity-90 cursor-not-allowed shadow-sm"
+                              title="Order already printed — cannot print again"
+                            >
+                              <Printer className="h-3.5 w-3.5" />
+                              <span>Printed #{o.tokenNo}</span>
+                            </button>
                           ) : (
-                            <>
-                              <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[2.5]" />
-                              <span>Done</span>
-                            </>
+                            <button
+                              onClick={() => handlePrint(o)}
+                              className="btn btn-teal px-3 py-1.5 text-xs font-bold flex items-center gap-1.5 shadow-sm hover:shadow"
+                              title={`Open print page for Order #${o.tokenNo}`}
+                            >
+                              <Printer className="h-3.5 w-3.5" />
+                              <span>Print #{o.tokenNo}</span>
+                            </button>
                           )}
-                        </button>
 
-                        {/* Download */}
-                        <button
-                          title="Download raw file"
-                          onClick={() => download(o)}
-                          className="rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        >
-                          <Download className="h-4 w-4" />
-                        </button>
+                          {/* Done Button - ONLY shown when NOT done (no tick icon) */}
+                          {!isDone && (
+                            <button
+                              onClick={() => markDone(o)}
+                              className="inline-flex items-center justify-center rounded-lg border-2 border-teal bg-teal-soft/40 px-3 py-1.5 text-xs font-bold text-teal hover:bg-teal hover:text-white transition active:scale-95 shadow-xs"
+                              title="Mark order as done"
+                            >
+                              Done
+                            </button>
+                          )}
 
-                        {/* Delete */}
-                        <button
-                          title="Remove order"
-                          onClick={() => remove(o)}
-                          className="rounded-lg p-2 text-muted-foreground hover:bg-destructive-soft hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {/* Download */}
+                          <button
+                            title="Download raw file"
+                            onClick={() => download(o)}
+                            className={`rounded-lg p-2 transition ${
+                              isDone
+                                ? "border border-red-200 bg-red-100 text-red-600 hover:bg-red-200"
+                                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                            }`}
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+
+                          {/* Delete */}
+                          <button
+                            title="Remove order"
+                            onClick={() => remove(o)}
+                            className={`rounded-lg p-2 transition ${
+                              isDone
+                                ? "border border-red-200 bg-red-100 text-red-600 hover:bg-red-200"
+                                : "text-muted-foreground hover:bg-destructive-soft hover:text-destructive"
+                            }`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
