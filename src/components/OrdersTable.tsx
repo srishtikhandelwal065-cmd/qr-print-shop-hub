@@ -285,19 +285,19 @@ export function OrdersTable({
                     }`}
                     title={
                       o.status === "ready" || o.status === "collected"
-                        ? "Printed! Click to mark as pending again"
-                        : "Mark order as printed (Tick)"
+                        ? "Done! Click to mark as pending again"
+                        : "Mark order as done"
                     }
                   >
                     {o.status === "ready" || o.status === "collected" ? (
                       <>
                         <CheckCircle2 className="h-4 w-4 text-white" />
-                        <span>Printed ✓</span>
+                        <span>Done ✓</span>
                       </>
                     ) : (
                       <>
                         <Check className="h-4 w-4 text-emerald-600 stroke-[2.5]" />
-                        <span>Tick</span>
+                        <span>Done</span>
                       </>
                     )}
                   </button>
@@ -469,19 +469,19 @@ export function OrdersTable({
                           }`}
                           title={
                             o.status === "ready" || o.status === "collected"
-                              ? "Printed! Click to mark as pending again"
-                              : "Mark order as printed (Tick)"
+                              ? "Done! Click to mark as pending again"
+                              : "Mark order as done"
                           }
                         >
                           {o.status === "ready" || o.status === "collected" ? (
                             <>
                               <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-                              <span>Printed ✓</span>
+                              <span>Done ✓</span>
                             </>
                           ) : (
                             <>
                               <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[2.5]" />
-                              <span>Tick</span>
+                              <span>Done</span>
                             </>
                           )}
                         </button>
