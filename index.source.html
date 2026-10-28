@@ -15,6 +15,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet" />
+    <script>
+      // Auto-recover if Vite dynamic import or chunk loading encounters a mobile network glitch
+      window.addEventListener('vite:preloadError', function(event) {
+        event.preventDefault();
+        window.location.reload();
+      });
+      window.addEventListener('error', function(event) {
+        var msg = (event && event.message) ? event.message.toLowerCase() : '';
+        if (msg.indexOf('dynamically imported module') !== -1 || msg.indexOf('loading chunk') !== -1) {
+          if (!sessionStorage.getItem('printex_chunk_error_reloaded')) {
+            sessionStorage.setItem('printex_chunk_error_reloaded', '1');
+            window.location.reload();
+          }
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

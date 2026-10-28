@@ -32,11 +32,38 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
-  console.error(error);
+  console.error("Route error caught by root:", error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+
+    // Auto-recover if this is a transient chunk loading or route match error on initial mobile scan
+    if (typeof window !== "undefined") {
+      const errStr = String((error as { message?: string })?.message || error || "").toLowerCase();
+      const isRecoverableError =
+        errStr.includes("dynamically imported module") ||
+        errStr.includes("failed to fetch") ||
+        errStr.includes("loading chunk") ||
+        errStr.includes("importing a module script failed") ||
+        errStr.includes("not currently matched");
+
+      const hasRetried = sessionStorage.getItem("printex_root_error_retry");
+      if (isRecoverableError && !hasRetried) {
+        sessionStorage.setItem("printex_root_error_retry", "true");
+        window.location.reload();
+      }
+    }
   }, [error]);
+
+  const handleRetry = () => {
+    try {
+      router.invalidate();
+      reset();
+    } catch {
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -46,7 +73,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="btn btn-primary">Try again</button>
+          <button onClick={handleRetry} className="btn btn-primary">Try again</button>
           <a href="/" className="btn btn-outline">Go home</a>
         </div>
       </div>

@@ -53,6 +53,7 @@ function stubStartStoragePlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: "/",
   plugins: [
     stubStartStoragePlugin(),
     tailwindcss(),

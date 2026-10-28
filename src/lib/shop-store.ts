@@ -318,11 +318,12 @@ export async function searchShops(q: string): Promise<Shop[]> {
 }
 
 export async function getPublicShop(id: string): Promise<Shop | null> {
-  const cacheKey = `printex_public_shop_${id}`;
+  const cleanId = (id || "").replace(/\/+$/, "").trim();
+  const cacheKey = `printex_public_shop_${cleanId}`;
 
   // 1. Exact match directly from Supabase (fast: ~100ms)
   try {
-    const { data, error } = await supabase.from("shops").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from("shops").select("*").eq("id", cleanId).maybeSingle();
     if (!error && data) {
       const shop = toShop(data as ShopRow);
       if (typeof window !== "undefined") {
@@ -337,7 +338,7 @@ export async function getPublicShop(id: string): Promise<Shop | null> {
     const { data: prefixMatches } = await supabase
       .from("shops")
       .select("*")
-      .ilike("id", `${id}%`)
+      .ilike("id", `${cleanId}%`)
       .limit(1);
     if (prefixMatches && prefixMatches.length > 0) {
       const shop = toShop(prefixMatches[0] as ShopRow);
@@ -927,16 +928,17 @@ export async function submitUpload(
 }
 
 export function shopUploadUrl(id: string) {
+  const cleanId = (id || "").replace(/\/+$/, "").trim();
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
     // If running on localhost or 127.0.0.1, phone cameras cannot reach 'localhost:8080'.
     // Use the live deployed URL so scanning from a phone immediately works!
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      return `https://printex.rolexnewbio.com/s/${id}`;
+      return `https://printex.rolexnewbio.com/s/${cleanId}`;
     }
-    return `${origin}/s/${id}`;
+    return `${origin}/s/${cleanId}`;
   }
-  return `https://printex.rolexnewbio.com/s/${id}`;
+  return `https://printex.rolexnewbio.com/s/${cleanId}`;
 }
 
 /**

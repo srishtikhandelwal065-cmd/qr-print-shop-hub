@@ -21,7 +21,48 @@ export const Route = createFileRoute("/s/$shopId")({
     ],
   }),
   component: CustomerUpload,
+  errorComponent: CustomerErrorComponent,
 });
+
+function CustomerErrorComponent() {
+  useEffect(() => {
+    // If an error happens when landing on the customer upload page from a mobile QR scan,
+    // automatically reload once silently. This instantly recovers from mobile browser webview
+    // or camera app quirks without the user ever having to see an error!
+    if (typeof window !== "undefined") {
+      const hasRetried = sessionStorage.getItem("printex_customer_page_retry");
+      if (!hasRetried) {
+        sessionStorage.setItem("printex_customer_page_retry", "true");
+        window.location.reload();
+      }
+    }
+  }, []);
+
+  return (
+    <Center>
+      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-teal-soft text-teal">
+        <Printer className="h-8 w-8" />
+      </div>
+      <h1 className="mt-4 text-2xl font-bold text-navy">Connecting to Shop…</h1>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Setting up your instant print upload session.
+      </p>
+      <div className="mt-6 flex flex-col gap-2 w-full max-w-xs">
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined") window.location.reload();
+          }}
+          className="btn btn-teal w-full py-3"
+        >
+          Load Print Station
+        </button>
+        <Link to="/" className="btn btn-outline w-full py-2.5 text-xs">
+          Return to Homepage
+        </Link>
+      </div>
+    </Center>
+  );
+}
 
 interface Item {
   id: string;
@@ -43,10 +84,28 @@ const ACCEPT = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
 const nameSchema = z.string().trim().min(2, "Enter your name so the shopkeeper can call you").max(40);
 const phoneSchema = z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian phone number").optional().or(z.literal(""));
 
+function getSafeShopId(): string {
+  if (typeof window !== "undefined") {
+    const match = window.location.pathname.match(/\/s\/([^/?#]+)/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]).replace(/\/+$/, "").trim();
+    }
+  }
+  return "";
+}
+
 function CustomerUpload() {
-  const { shopId } = Route.useParams();
+  let paramId = "";
+  try {
+    const params = Route.useParams();
+    if (params && params.shopId) {
+      paramId = params.shopId;
+    }
+  } catch {}
+  const shopId = (paramId || getSafeShopId()).replace(/\/+$/, "").trim();
+
   const [shop, setShop] = useState<Shop | null | undefined>(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && shopId) {
       try {
         const cached = localStorage.getItem(`printex_public_shop_${shopId}`);
         if (cached) return JSON.parse(cached);
@@ -65,7 +124,14 @@ function CustomerUpload() {
   const [failMsg, setFailMsg] = useState("");
 
   useEffect(() => {
-    getPublicShop(shopId).then(setShop).catch(() => setShop(null));
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("printex_customer_page_retry");
+    }
+    if (shopId) {
+      getPublicShop(shopId).then(setShop).catch(() => setShop(null));
+    } else {
+      setShop(null);
+    }
   }, [shopId]);
 
   const addFiles = async (list: FileList | null) => {
