@@ -16,13 +16,14 @@ function Overview() {
 
   const today = new Date().toDateString();
   const orders = all.filter((o) => new Date(o.createdAt).toDateString() === today);
-  const totalPagesToday = orders.reduce((sum, o) => sum + (o.pages * o.copies), 0);
+  const pendingOrders = orders.filter((o) => o.status === "pending");
+  const pagesPrintedToday = orders.filter((o) => o.status !== "pending").reduce((sum, o) => sum + (o.pages * o.copies), 0);
   const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
 
   const kpis = [
     { icon: FileText, label: "Orders Today", value: orders.length, tone: "bg-info-soft text-info" },
-    { icon: Clock, label: "Pending to Print", value: orders.filter((o) => o.status === "pending").length, tone: "bg-warning-soft text-warning" },
-    { icon: Layers, label: "Pages Printed", value: totalPagesToday, tone: "bg-purple-100 text-purple-700" },
+    { icon: Clock, label: "Pending to Print", value: pendingOrders.length, tone: "bg-warning-soft text-warning" },
+    { icon: Layers, label: "Pages Printed", value: pagesPrintedToday, tone: "bg-purple-100 text-purple-700" },
     { icon: IndianRupee, label: "Revenue Today", value: `₹${totalRevenue.toLocaleString("en-IN")}`, tone: "bg-teal-soft text-teal" },
   ];
 

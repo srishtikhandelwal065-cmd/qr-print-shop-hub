@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Printer, Download, Trash2, Loader2, Inbox, Search,
-  MessageCircle, Sparkles, RefreshCw
+  MessageCircle, Sparkles, RefreshCw, Check, CheckCircle2
 } from "lucide-react";
 import {
-  listOrders, deleteOrder, downloadOrderFile, printOrderFile,
-  type Order
+  listOrders, deleteOrder, downloadOrderFile, printOrderFile, setOrderStatus,
+  type Order, type OrderStatus
 } from "@/lib/shop-store";
 
 export function OrdersTable({
@@ -74,6 +74,39 @@ export function OrdersTable({
       flash(`Downloading ${o.fileName}…`);
     } catch {
       flash("File could not be downloaded.");
+    }
+  };
+
+  const togglePrinted = async (o: Order) => {
+    const isPrinted = o.status === "ready" || o.status === "collected";
+    const nextStatus: OrderStatus = isPrinted ? "pending" : "ready";
+
+    // 1. Optimistic UI update in React Query cache so Pending count and button update immediately
+    const previousOrders = qc.getQueryData<Order[]>(key);
+    const updatedOrders = (previousOrders || []).map((item) =>
+      item.id === o.id ? { ...item, status: nextStatus } : item
+    );
+    qc.setQueryData<Order[]>(key, updatedOrders);
+
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`printex_orders_cache_${shopId}`, JSON.stringify(updatedOrders));
+      } catch {}
+    }
+
+    try {
+      await setOrderStatus(o.id, nextStatus);
+      flash(
+        nextStatus === "ready"
+          ? `✓ Order #${o.tokenNo} marked as printed!`
+          : `Order #${o.tokenNo} returned to pending.`
+      );
+      await qc.invalidateQueries({ queryKey: key });
+    } catch {
+      if (previousOrders) {
+        qc.setQueryData<Order[]>(key, previousOrders);
+      }
+      flash("Could not update order status. Please try again.");
     }
   };
 
@@ -156,11 +189,22 @@ export function OrdersTable({
                 {/* Header Row: Token, Customer Name, Time, and Price */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="shrink-0 font-mono text-base font-extrabold text-teal bg-teal-soft px-2.5 py-1 rounded-xl border border-teal/30 shadow-xs">
+                    <span className={`shrink-0 font-mono text-base font-extrabold px-2.5 py-1 rounded-xl border shadow-xs ${
+                      o.status === "ready" || o.status === "collected"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                        : "text-teal bg-teal-soft border-teal/30"
+                    }`}>
                       #{o.tokenNo}
                     </span>
                     <div className="min-w-0">
-                      <p className="font-bold text-navy truncate text-sm">{o.customer}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-navy truncate text-sm">{o.customer}</p>
+                        {(o.status === "ready" || o.status === "collected") && (
+                          <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-[10px] font-bold">
+                            ✓ Printed
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                         <span>{new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                         {o.customerPhone && (
@@ -231,6 +275,33 @@ export function OrdersTable({
                     <span>Print #{o.tokenNo}</span>
                   </button>
 
+                  {/* Tick / Mark Printed Toggle Button */}
+                  <button
+                    onClick={() => togglePrinted(o)}
+                    className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl font-bold text-xs border min-h-[44px] transition active:scale-95 shadow-xs ${
+                      o.status === "ready" || o.status === "collected"
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                        : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400"
+                    }`}
+                    title={
+                      o.status === "ready" || o.status === "collected"
+                        ? "Printed! Click to mark as pending again"
+                        : "Mark order as printed (Tick)"
+                    }
+                  >
+                    {o.status === "ready" || o.status === "collected" ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-white" />
+                        <span>Printed ✓</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 text-emerald-600 stroke-[2.5]" />
+                        <span>Tick</span>
+                      </>
+                    )}
+                  </button>
+
                   {/* WhatsApp Customer */}
                   {o.customerPhone && (
                     <a
@@ -285,11 +356,22 @@ export function OrdersTable({
                     {/* Token & Customer */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-base font-extrabold text-teal bg-teal-soft px-2.5 py-1 rounded-lg border border-teal/30">
+                        <span className={`font-mono text-base font-extrabold px-2.5 py-1 rounded-lg border ${
+                          o.status === "ready" || o.status === "collected"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                            : "text-teal bg-teal-soft border-teal/30"
+                        }`}>
                           #{o.tokenNo}
                         </span>
                         <div>
-                          <p className="font-bold text-navy truncate max-w-[130px]">{o.customer}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-navy truncate max-w-[130px]">{o.customer}</p>
+                            {(o.status === "ready" || o.status === "collected") && (
+                              <span className="shrink-0 rounded-full bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-[10px] font-bold">
+                                ✓ Printed
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] text-muted-foreground">
                             {new Date(o.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </p>
@@ -364,7 +446,7 @@ export function OrdersTable({
                       ₹{o.amount.toFixed(2)}
                     </td>
 
-                    {/* Actions: ONLY Print #<token>, Download, and Delete */}
+                    {/* Actions: Direct Print, Tick (Mark Printed), Download, and Delete */}
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Direct Print Button with Token */}
@@ -375,6 +457,33 @@ export function OrdersTable({
                         >
                           <Printer className="h-3.5 w-3.5" />
                           <span>Print #{o.tokenNo}</span>
+                        </button>
+
+                        {/* Tick / Mark Printed Toggle Button */}
+                        <button
+                          onClick={() => togglePrinted(o)}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition active:scale-95 shadow-xs border ${
+                            o.status === "ready" || o.status === "collected"
+                              ? "bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700"
+                              : "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400"
+                          }`}
+                          title={
+                            o.status === "ready" || o.status === "collected"
+                              ? "Printed! Click to mark as pending again"
+                              : "Mark order as printed (Tick)"
+                          }
+                        >
+                          {o.status === "ready" || o.status === "collected" ? (
+                            <>
+                              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                              <span>Printed ✓</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[2.5]" />
+                              <span>Tick</span>
+                            </>
+                          )}
                         </button>
 
                         {/* Download */}
