@@ -225,28 +225,171 @@ function Home() {
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="scroll-mt-16 py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <SectionHead eyebrow="Features" title="Everything a busy print counter needs" />
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              [QrCode, "Unique shop QR", "Every shop gets its own QR and upload link — share on WhatsApp or print it."],
-              [FileText, "Auto page count", "PDF pages are counted automatically so pricing is never a guess."],
-              [Calculator, "Instant pricing", "Set B/W, colour and double-sided rates. Customers see the estimate upfront."],
-              [Bell, "Live order queue", "New uploads land in one queue with status: pending, printing, ready."],
-              [MessageCircle, "WhatsApp fallback", "Customers can still send files on WhatsApp straight to your number."],
-              [Shield, "No pen drives", "Files come straight to you — no viruses, no stranger's phone logins."],
-            ].map(([Icon, t, d], i) => {
-              const I = Icon as typeof QrCode;
-              return (
-                <div key={i} className="card p-6 transition hover:-translate-y-0.5">
-                  <I className="h-5 w-5 text-teal" />
-                  <h3 className="mt-4 font-semibold">{t as string}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{d as string}</p>
+      {/* Features - Premium Bento Grid Architecture */}
+      <section id="features" className="scroll-mt-16 py-20 bg-gradient-to-b from-white via-slate-50/60 to-white border-t">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/30 bg-teal-soft px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-teal shadow-xs">
+              <Sparkles className="h-3.5 w-3.5 text-teal" /> Features
+            </span>
+            <h2 className="mt-3 text-3xl sm:text-4xl md:text-5xl font-extrabold text-navy tracking-tight">
+              Everything a Busy Print Counter Needs.
+            </h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Eliminate daily counter friction, speed up rush hour by 3x, and give customers a seamless modern experience.
+            </p>
+          </div>
+
+          {/* Bento Grid */}
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-12">
+            
+            {/* Bento 1: Large Featured Card (lg:col-span-7) - Unique Counter QR & Stand */}
+            <div className="lg:col-span-7 rounded-3xl border border-slate-900 bg-slate-950 text-white p-6 sm:p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
+              {/* Decorative radial glow */}
+              <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-teal/20 blur-3xl group-hover:bg-teal/30 transition-all duration-500" />
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-teal/15 border border-teal/30 px-3 py-1 text-[11px] font-bold text-teal uppercase tracking-wider">
+                    <QrCode className="h-3.5 w-3.5" /> 1-Click Setup
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">Instant A4 / Acrylic Print</span>
                 </div>
-              );
-            })}
+
+                <h3 className="mt-4 text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Unique Counter QR Code & Ready-to-Print Poster
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md">
+                  Every shop gets its permanent branded QR code. Download the pre-formatted A4 poster, stick it on your counter desk, and customers upload directly from their phones.
+                </p>
+              </div>
+
+              {/* Visual Micro Preview of the Counter Poster */}
+              <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="rounded-xl bg-white p-3 shadow-lg shrink-0 text-center">
+                    <QrCode className="h-14 w-14 text-navy mx-auto" />
+                    <p className="text-[9px] font-bold text-navy mt-1 uppercase tracking-wider">Scan to Print</p>
+                  </div>
+                  <div className="space-y-1.5 text-center sm:text-left min-w-0 flex-1">
+                    <div className="inline-block rounded-md bg-teal/20 px-2 py-0.5 text-[10px] font-bold text-teal">
+                      No App Download Required
+                    </div>
+                    <p className="text-xs font-semibold text-white">Works with iPhone, Android & WhatsApp</p>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      Students scan the QR code right at your front glass or counter desk — no phone numbers saved, zero waiting in line.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 2: Auto Page & Pricing Engine (lg:col-span-5) */}
+            <div className="lg:col-span-5 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300 group">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+                  <Calculator className="h-3.5 w-3.5" /> Instant Pricing
+                </span>
+                <h3 className="mt-4 text-xl font-bold text-navy">
+                  Auto Page Count & Price Engine
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  PDF pages are counted automatically. Set your B/W, colour, and double-sided rates once — customers see upfront estimates with zero price disputes.
+                </p>
+              </div>
+
+              {/* Visual Micro Calculator Card */}
+              <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-navy flex items-center gap-1.5">
+                    <FileText className="h-3.5 w-3.5 text-teal" /> College_Notes.pdf
+                  </span>
+                  <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                    24 pages detected
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border-t border-slate-200/60 pt-2 text-xs">
+                  <span className="text-muted-foreground">B/W · Double-Sided (₹1.5/pg)</span>
+                  <span className="font-extrabold text-navy text-sm">Total: ₹36.00</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 3: 100% Virus-Free Shield (lg:col-span-4) */}
+            <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-soft border border-teal/30 px-3 py-1 text-[11px] font-bold text-teal uppercase tracking-wider">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Zero Hardware Risk
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-navy">
+                  100% Virus-Free (No USBs)
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Protect your counter billing PC from malware, shortcut worms, and Trojan viruses found on customer pen-drives.
+                </p>
+              </div>
+
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center justify-between rounded-xl border border-red-200/80 bg-red-50/70 p-2 text-[11px]">
+                  <span className="font-bold text-red-700">❌ USB Pen Drive</span>
+                  <span className="text-red-600 font-medium">Infected files & slow</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl border border-teal/30 bg-teal-soft p-2 text-[11px]">
+                  <span className="font-bold text-teal">✅ Direct QR Cloud</span>
+                  <span className="text-teal font-medium">100% Sandboxed & Safe</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 4: Live Order Queue with Done Tracking (lg:col-span-4) */}
+            <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-[11px] font-bold text-indigo-700 uppercase tracking-wider">
+                  <Zap className="h-3.5 w-3.5" /> Counter Speed
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-navy">
+                  10-Second Queue & "Done" Tracking
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  Every order lands in your live queue. Click [Print], hand over pages, and hit [Done] to subtract from pending counts automatically.
+                </p>
+              </div>
+
+              {/* Micro Status Queue Simulation */}
+              <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-navy">Token #18</span>
+                  <span className="rounded-md bg-teal px-2 py-0.5 text-[10px] font-bold text-white">Printing</span>
+                </div>
+                <div className="flex items-center justify-between text-xs border-t border-slate-200/60 pt-1.5">
+                  <span className="font-bold text-red-800 line-through">Token #17</span>
+                  <span className="rounded-md bg-red-100 text-red-700 px-2 py-0.5 text-[10px] font-bold">Done ✓</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 5: WhatsApp Direct Fallback (lg:col-span-4) */}
+            <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+                  <MessageCircle className="h-3.5 w-3.5" /> Always Connected
+                </span>
+                <h3 className="mt-4 text-lg font-bold text-navy">
+                  WhatsApp Fallback Built-In
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                  For customers who still prefer WhatsApp, your shop profile generates a direct 1-click WhatsApp chat link with pre-filled details.
+                </p>
+              </div>
+
+              <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-800 flex items-center gap-1.5">
+                  <MessageCircle className="h-4 w-4 text-emerald-600" /> WhatsApp Chat
+                </span>
+                <span className="text-[11px] text-emerald-700 font-semibold">1-Tap Send ↗</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
