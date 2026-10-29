@@ -1,10 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   QrCode, Upload, Search, Bell, FileText, IndianRupee, Clock, CheckCircle2, Smartphone,
   LayoutDashboard, MessageCircle, Calculator, Shield, Star, Menu, X, Mail, Phone, MapPin,
   Sparkles, ShieldCheck, Zap, Printer, Check, ShieldAlert, ArrowRight, RefreshCw, AlertTriangle,
-  TrendingUp, MousePointer2, PieChart, Layers
+  TrendingUp, MousePointer2, PieChart, Layers, ChevronDown, ChevronRight
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -82,9 +82,7 @@ function Home() {
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
             {/* Left Column: Heading, Subheading & CTAs */}
             <div className="lg:col-span-6 text-left">
-              <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-soft/80 px-3.5 py-1 text-xs font-bold text-teal shadow-xs">
-                <span className="h-1.5 w-1.5 rounded-full bg-teal animate-pulse" /> BUILT FOR INDIAN XEROX & PRINT SHOPS
-              </div>
+              <InteractiveHeroBadge />
 
               <h1 className="fade-up mt-5 text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.12] tracking-tight text-navy">
                 Manage Every Print Order in <span className="text-teal">One Place.</span>
@@ -534,6 +532,118 @@ function FindShop({ onClose }: { onClose: () => void }) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function InteractiveHeroBadge() {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="relative inline-block text-left z-30">
+      {/* Interactive Main Pill Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="group relative inline-flex items-center gap-2 rounded-full border border-teal/40 bg-gradient-to-r from-teal-soft/95 via-white to-teal-soft/95 p-1 pr-3 text-xs font-semibold text-navy shadow-xs hover:border-teal hover:shadow-md transition-all duration-200 active:scale-95 cursor-pointer"
+        aria-expanded={isOpen}
+      >
+        {/* Animated pulsating radar dot */}
+        <span className="relative flex h-2 w-2 ml-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-teal" />
+        </span>
+
+        {/* Indian Flag & Text */}
+        <span className="flex items-center gap-1.5 font-extrabold text-navy text-[11px] sm:text-xs tracking-tight">
+          <span className="text-sm leading-none">🇮🇳</span>
+          <span>Built for Indian Xerox & Print Counters</span>
+        </span>
+
+        {/* Interactive Action Indicator Chip */}
+        <span className="inline-flex items-center gap-1 rounded-full bg-teal/10 px-2 py-0.5 text-[10px] font-bold text-teal group-hover:bg-teal group-hover:text-white transition-colors">
+          <span className="hidden sm:inline">{isOpen ? "Close" : "See Why"}</span>
+          <ChevronDown
+            className={`h-3 w-3 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </span>
+      </button>
+
+      {/* Expandable Glassmorphic Insight Popover */}
+      {isOpen && (
+        <div className="absolute left-0 top-full mt-2 z-40 w-80 sm:w-96 rounded-2xl border border-teal/30 bg-white/98 p-4 text-navy shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm">🇮🇳</span>
+              <span className="text-xs font-bold text-navy">Why Indian Counters Need Printex</span>
+            </div>
+            <span className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-bold text-teal">
+              1,200+ Shops Live
+            </span>
+          </div>
+
+          <div className="mt-3 space-y-2.5 text-xs">
+            <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
+              <span className="text-base select-none">🛡️</span>
+              <div>
+                <p className="font-bold text-navy">Zero Pen-Drive Shortcut Viruses</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                  Customer USB sticks frequently carry shortcut malware that corrupts billing PCs. Printex keeps files 100% cloud-isolated.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
+              <span className="text-base select-none">💬</span>
+              <div>
+                <p className="font-bold text-navy">No Buried WhatsApp Chats</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                  Stop sharing personal numbers or digging through 50 unread student PDFs during rush hour.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100">
+              <span className="text-base select-none">₹</span>
+              <div>
+                <p className="font-bold text-navy">Automatic Page & UPI Calculations</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                  Instant PDF page detection eliminates manual math arguments with customers over B/W vs colour rates.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-[11px]">
+            <span className="text-[10px] text-muted-foreground font-mono">Pune · Delhi · Chennai · Lucknow</span>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="font-bold text-teal hover:underline text-xs"
+            >
+              Close ✓
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
