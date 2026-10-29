@@ -87,7 +87,7 @@ function Home() {
               </div>
 
               <h1 className="fade-up mt-5 text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.12] tracking-tight text-navy">
-                Manage Every Print Order in <span className="text-teal underline decoration-teal/30 decoration-wavy">One Place.</span>
+                Manage Every Print Order in <span className="text-teal">One Place.</span>
               </h1>
 
               <p className="mt-4 text-xl sm:text-2xl font-bold text-navy/90 tracking-tight leading-snug">
