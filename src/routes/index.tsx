@@ -417,43 +417,166 @@ function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20">
-        <div className="mx-auto max-w-4xl px-4">
-          <div className="rounded-3xl bg-primary p-10 text-center text-primary-foreground shadow-[var(--shadow-float)]">
-            <h2 className="text-3xl font-bold">Get your shop QR code today</h2>
-            <p className="mx-auto mt-3 max-w-md opacity-80">Join print shops saving hours every week. Free to start.</p>
-            <Link to="/register" className="btn btn-teal mt-7 px-6 py-3">Create my shop</Link>
+      {/* High-Converting Pre-Footer CTA */}
+      <section className="relative overflow-hidden py-16 sm:py-24">
+        {/* Ambient atmospheric backdrop */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-teal-soft/30 to-slate-900/10" />
+
+        <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="relative overflow-hidden rounded-3xl border border-teal/30 bg-gradient-to-br from-slate-950 via-[#0b1528] to-slate-950 p-8 sm:p-12 md:p-16 text-white shadow-2xl">
+            {/* Glowing radial orbs */}
+            <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-teal/20 blur-3xl animate-pulse" />
+            <div className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-indigo-500/15 blur-3xl" />
+            <div className="pointer-events-none absolute inset-0 bg-grid opacity-10" />
+
+            <div className="relative z-10 grid gap-8 lg:grid-cols-12 lg:items-center">
+              {/* Left Column: Copy & Dual CTAs */}
+              <div className="lg:col-span-7 text-left">
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal/40 bg-teal/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-teal shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5" /> Start in Under 2 Minutes • 100% Free
+                </div>
+
+                <h2 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-[1.15]">
+                  Ready to Transform Your <span className="text-teal">Print Counter?</span>
+                </h2>
+
+                <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
+                  Join 1,200+ Indian xerox & print shops who replaced WhatsApp clutter and infected pen-drives with a professional counter queue.
+                </p>
+
+                <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <Link
+                    to="/register"
+                    className="btn btn-teal px-7 py-3.5 min-h-[48px] text-sm font-bold shadow-lg shadow-teal/30 rounded-xl justify-center active:scale-95 transition"
+                  >
+                    <QrCode className="h-4 w-4" /> Get Free Shop QR Code
+                  </Link>
+                  <button
+                    onClick={() => setFindOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3.5 min-h-[48px] text-sm font-semibold text-white hover:bg-white/20 transition active:scale-95 backdrop-blur-sm"
+                  >
+                    <Upload className="h-4 w-4" /> Test Customer Upload
+                  </button>
+                </div>
+
+                {/* Micro guarantees */}
+                <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400 border-t border-white/10 pt-4">
+                  <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-teal" /> Zero Setup Cost</span>
+                  <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-amber-400" /> Instant A4 Poster Download</span>
+                  <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-400" /> Works on Any Printer</span>
+                </div>
+              </div>
+
+              {/* Right Column: Mini Printable Counter QR Stand Preview */}
+              <div className="lg:col-span-5 flex justify-center lg:justify-end">
+                <div className="relative w-full max-w-[280px] rounded-2xl border border-teal/40 bg-white/95 p-5 text-navy shadow-2xl backdrop-blur-md transition-all hover:scale-105 duration-300">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <span className="text-[10px] font-bold text-teal uppercase tracking-wider flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-teal animate-ping" />
+                      Live Counter QR
+                    </span>
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[9px] font-mono text-slate-600 font-bold">
+                      A4 Stand
+                    </span>
+                  </div>
+
+                  <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200/80 p-4 text-center">
+                    <QrCode className="mx-auto h-24 w-24 text-navy" />
+                    <p className="mt-2 text-xs font-bold text-navy uppercase tracking-wider">
+                      Scan with Phone Camera
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Upload PDF · Choose Colour/BW · Auto Price
+                    </p>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-slate-600 border-t border-slate-100 pt-2">
+                    <span>⚡ 10s Turnaround</span>
+                    <span className="text-teal font-bold">100% Virus-Free</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <footer id="contact" className="scroll-mt-16 border-t">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <Logo />
-            <p className="mt-3 max-w-sm text-sm text-muted-foreground">Smart order management for photocopy and printing businesses across India.</p>
+      {/* Redesigned Modern Footer */}
+      <footer id="contact" className="scroll-mt-16 border-t border-slate-800 bg-slate-950 text-slate-300">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-16 pb-12">
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12">
+            
+            {/* Col 1: Brand & Operational Status (lg:col-span-4) */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="inline-block rounded-xl bg-white p-2.5 shadow-sm">
+                <Logo className="h-6" />
+              </div>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm">
+                The smart operating system for Indian photocopy, xerox, and digital printing businesses. Replace WhatsApp chaos with a touchless counter queue.
+              </p>
+              
+              {/* Live Status Pill */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>All Systems Operational</span>
+              </div>
+            </div>
+
+            {/* Col 2: Product & Platform (lg:col-span-2) */}
+            <div className="lg:col-span-2 space-y-3 text-xs sm:text-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-white">Platform</p>
+              <ul className="space-y-2 text-slate-400">
+                <li><a href="#features" className="hover:text-teal transition-colors">Bento Features</a></li>
+                <li><a href="#reviews" className="hover:text-teal transition-colors">Shop Reviews</a></li>
+                <li><Link to="/register" className="hover:text-teal transition-colors">Register Shop (Free)</Link></li>
+                <li><Link to="/auth" className="hover:text-teal transition-colors">Owner Sign In</Link></li>
+                <li><button onClick={() => setFindOpen(true)} className="hover:text-teal transition-colors text-left">Find Shop</button></li>
+              </ul>
+            </div>
+
+            {/* Col 3: Counter Solutions (lg:col-span-3) */}
+            <div className="lg:col-span-3 space-y-3 text-xs sm:text-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-white">Counter Tools</p>
+              <ul className="space-y-2 text-slate-400">
+                <li><span className="text-slate-300 font-medium">Printable Counter QR Stand</span></li>
+                <li><span className="text-slate-300 font-medium">Auto PDF Page Detection</span></li>
+                <li><span className="text-slate-300 font-medium">Instant B/W & Colour Pricing</span></li>
+                <li><span className="text-slate-300 font-medium">100% Virus-Free Isolation</span></li>
+                <li><span className="text-slate-300 font-medium">1-Click Done Queue Ledger</span></li>
+              </ul>
+            </div>
+
+            {/* Col 4: Contact & Support (lg:col-span-3) */}
+            <div className="lg:col-span-3 space-y-3 text-xs sm:text-sm">
+              <p className="text-xs font-bold uppercase tracking-wider text-white">Support & Contact</p>
+              <div className="space-y-2 text-slate-400">
+                <a href="mailto:contact.printex@gmail.com" className="flex items-center gap-2 hover:text-teal transition-colors">
+                  <Mail className="h-4 w-4 text-teal" /> contact.printex@gmail.com
+                </a>
+                <a href="tel:+918957759289" className="flex items-center gap-2 hover:text-teal transition-colors">
+                  <Phone className="h-4 w-4 text-teal" /> +91 89577 59289
+                </a>
+                <p className="flex items-center gap-2 text-slate-400">
+                  <MapPin className="h-4 w-4 text-teal" /> Delhi, India
+                </p>
+                <p className="text-[11px] text-slate-500 pt-1">
+                  Support: Mon - Sat, 9:00 AM - 9:00 PM IST
+                </p>
+              </div>
+            </div>
+
           </div>
-          <div className="space-y-2 text-sm">
-            <p className="font-semibold">Product</p>
-            <a href="#features" className="block text-muted-foreground hover:text-foreground">Features</a>
-            <Link to="/register" className="block text-muted-foreground hover:text-foreground">Register shop</Link>
-            <Link to="/dashboard" className="block text-muted-foreground hover:text-foreground">Dashboard</Link>
-          </div>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p className="font-semibold text-foreground">Contact</p>
-            <a href="mailto:contact.printex@gmail.com" className="flex items-center gap-2 hover:text-foreground transition-colors">
-              <Mail className="h-4 w-4" /> contact.printex@gmail.com
-            </a>
-            <a href="tel:+918957759289" className="flex items-center gap-2 hover:text-foreground transition-colors">
-              <Phone className="h-4 w-4" /> +91 89577 59289
-            </a>
-            <p className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" /> Delhi, India
-            </p>
+
+          {/* Bottom Copyright & Guarantee Sub-bar */}
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800/80 pt-6 text-xs text-slate-500">
+            <p>© {new Date().getFullYear()} Printex. Built for Indian xerox & print counters.</p>
+            <div className="flex flex-wrap items-center gap-4 text-slate-400">
+              <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3.5 w-3.5 text-teal" /> 100% Privacy Protected</span>
+              <span className="inline-flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-amber-400" /> Fast & Virus-Free</span>
+              <span>🇮🇳 Made in India</span>
+            </div>
           </div>
         </div>
-        <p className="border-t py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} Printex. All rights reserved.</p>
       </footer>
 
       {findOpen && <FindShop onClose={() => setFindOpen(false)} />}
