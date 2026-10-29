@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { FileText, Clock, CheckCircle2, IndianRupee, ArrowRight, Layers } from "lucide-react";
 import { OrdersTable } from "@/components/OrdersTable";
+import { WhySwitchSection } from "@/components/WhySwitchSection";
 import { useShop } from "@/lib/use-shop";
 import { listOrders } from "@/lib/shop-store";
 
@@ -57,6 +58,8 @@ function Overview() {
           </div>
         ))}
       </div>
+
+      <WhySwitchSection shop={shop} />
 
       <div className="flex items-center justify-between pt-1">
         <h2 className="text-base sm:text-lg font-bold text-navy">Recent Customer Orders</h2>
