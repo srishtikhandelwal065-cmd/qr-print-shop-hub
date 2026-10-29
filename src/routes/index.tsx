@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import {
   QrCode, Upload, Search, Bell, FileText, IndianRupee, Clock, CheckCircle2, Smartphone,
   LayoutDashboard, MessageCircle, Calculator, Shield, Star, Menu, X, Mail, Phone, MapPin,
-  Sparkles, ShieldCheck, Zap, Printer, Check, ShieldAlert, ArrowRight, RefreshCw, AlertTriangle
+  Sparkles, ShieldCheck, Zap, Printer, Check, ShieldAlert, ArrowRight, RefreshCw, AlertTriangle,
+  TrendingUp, MousePointer2, PieChart, Layers
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -72,37 +73,71 @@ function Home() {
         )}
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="bg-grid absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-        <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center md:pt-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-soft px-3.5 py-1 text-xs font-bold text-teal shadow-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-teal animate-pulse" /> Built for Indian xerox & print shops
-          </div>
-          <h1 className="fade-up mx-auto mt-5 max-w-4xl text-3xl sm:text-5xl md:text-6xl font-extrabold leading-[1.14] tracking-tight text-navy">
-            Manage Every Print Order in <span className="text-teal">One Place.</span>
-          </h1>
-          <p className="mx-auto mt-3.5 max-w-2xl text-lg sm:text-xl font-semibold text-navy/85 md:text-2xl leading-relaxed">
-            The Smarter Way to Run Your Print Shop.
-          </p>
-          <p className="mx-auto mt-2 max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed">
-            No more WhatsApp chaos or pen-drive viruses. Customers scan your counter QR, upload files, and pick print options — you see every order with exact price calculated.
-          </p>
-          <div className="mt-7 sm:mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link to="/register" className="btn btn-teal px-7 py-3.5 min-h-[48px] text-sm font-bold shadow-lg shadow-teal/20">
-              <QrCode className="h-4 w-4" /> Get Free Shop QR Code
-            </Link>
-            <button onClick={() => setFindOpen(true)} className="btn btn-outline px-6 py-3.5 min-h-[48px] text-sm font-semibold">
-              <Upload className="h-4 w-4" /> Test Customer Upload Flow
-            </button>
-          </div>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 font-medium"><ShieldCheck className="h-3.5 w-3.5 text-teal" /> 100% Virus-Free (No USBs)</span>
-            <span className="inline-flex items-center gap-1.5 font-medium"><Zap className="h-3.5 w-3.5 text-amber-500" /> 10-Second Counter Turnaround</span>
-            <span className="inline-flex items-center gap-1.5 font-medium"><IndianRupee className="h-3.5 w-3.5 text-emerald-600" /> Auto Page & UPI Calculations</span>
+      {/* Hero Section - 2-Column Dribbble Inspired Layout */}
+      <section className="relative overflow-hidden pt-8 pb-14 md:pt-14 md:pb-20">
+        <div className="bg-grid absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)] pointer-events-none" />
+        <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-[420px] w-[900px] rounded-full bg-gradient-to-r from-teal/15 via-indigo-500/10 to-amber-500/10 blur-3xl opacity-75" />
+
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+            {/* Left Column: Heading, Subheading & CTAs */}
+            <div className="lg:col-span-6 text-left">
+              <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-soft/80 px-3.5 py-1 text-xs font-bold text-teal shadow-xs">
+                <span className="h-1.5 w-1.5 rounded-full bg-teal animate-pulse" /> BUILT FOR INDIAN XEROX & PRINT SHOPS
+              </div>
+
+              <h1 className="fade-up mt-5 text-3xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.12] tracking-tight text-navy">
+                Manage Every Print Order in <span className="text-teal underline decoration-teal/30 decoration-wavy">One Place.</span>
+              </h1>
+
+              <p className="mt-4 text-xl sm:text-2xl font-bold text-navy/90 tracking-tight leading-snug">
+                The Smarter Way to Run Your Print Shop.
+              </p>
+
+              <p className="mt-3 max-w-lg text-sm sm:text-base text-muted-foreground leading-relaxed">
+                Streamline your counter end-to-end. Customers scan your shop QR, choose print options, and you see every order with auto-counted pages and exact price calculated.
+              </p>
+
+              <div className="mt-7 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <Link
+                  to="/register"
+                  className="btn btn-primary px-7 py-3.5 min-h-[48px] text-sm font-bold shadow-lg shadow-navy/20 rounded-xl justify-center"
+                >
+                  Get Started
+                </Link>
+                <button
+                  onClick={() => setFindOpen(true)}
+                  className="btn btn-outline px-6 py-3.5 min-h-[48px] text-sm font-semibold rounded-xl justify-center"
+                >
+                  <Upload className="h-4 w-4" /> Test Customer Upload
+                </button>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground border-t border-border/60 pt-4">
+                <span className="inline-flex items-center gap-1.5 font-medium"><ShieldCheck className="h-3.5 w-3.5 text-teal" /> 100% Virus-Free (No USBs)</span>
+                <span className="inline-flex items-center gap-1.5 font-medium"><Zap className="h-3.5 w-3.5 text-amber-500" /> 10-Second Turnaround</span>
+                <span className="inline-flex items-center gap-1.5 font-medium"><IndianRupee className="h-3.5 w-3.5 text-emerald-600" /> Auto Page & UPI Calculations</span>
+              </div>
+            </div>
+
+            {/* Right Column: Dribbble-Style Hero Visual Composition (NO HUMAN PHOTOS) */}
+            <div className="lg:col-span-6 relative">
+              <HeroVisualComposition />
+            </div>
           </div>
 
-          <DashboardPreview />
+          {/* Interactive Live Counter & WhatsApp Switcher Demo */}
+          <div className="mt-14 sm:mt-20">
+            <div className="text-center mb-6">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5 text-teal" /> Try It Live Below
+              </span>
+              <h2 className="mt-2 text-xl sm:text-2xl font-bold text-navy">
+                Experience the Counter Dashboard Live
+              </h2>
+            </div>
+            <DashboardPreview />
+          </div>
         </div>
       </section>
 
@@ -328,6 +363,209 @@ function FindShop({ onClose }: { onClose: () => void }) {
             </Link>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroVisualComposition() {
+  return (
+    <div className="relative mx-auto max-w-lg lg:max-w-none pt-4 pb-8 sm:py-6">
+      {/* Diffused ambient backglow */}
+      <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-gradient-to-tr from-teal/20 via-sky-400/10 to-amber-300/10 blur-2xl" />
+
+      {/* Floating 4-point decorative star */}
+      <span className="absolute -top-3 left-6 text-teal text-xl select-none font-bold animate-pulse">✦</span>
+      <span className="absolute bottom-1 right-8 text-navy/40 text-lg select-none font-bold">✦</span>
+
+      {/* Main Central Card */}
+      <div className="relative rounded-2xl border border-slate-200/90 bg-white shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_25px_50px_-12px_rgba(13,148,136,0.22)]">
+        <div className="grid grid-cols-[44px_1fr] sm:grid-cols-[48px_1fr]">
+          {/* Left Vertical Dark Tool Palette (Zenbase screenshot style) */}
+          <div className="bg-slate-950 flex flex-col items-center py-4 gap-3 text-slate-400 border-r border-slate-800">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-teal text-white shadow-xs" title="Live Counter Queue">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+            </span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Print Orders">
+              <FileText className="h-3.5 w-3.5" />
+            </span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Instant Pricing">
+              <Calculator className="h-3.5 w-3.5" />
+            </span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Shop QR Code">
+              <QrCode className="h-3.5 w-3.5" />
+            </span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition mt-auto" title="Layers">
+              <Layers className="h-3.5 w-3.5" />
+            </span>
+          </div>
+
+          {/* Right Main Widget Canvas */}
+          <div className="p-3.5 sm:p-5 bg-gradient-to-b from-slate-50/50 to-white">
+            {/* Top 4 Stat Blocks (Exact Zenbase 4-metric grid) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Orders</p>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-base sm:text-lg font-extrabold text-navy font-display">28</span>
+                  <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">
+                    ↑ 14%
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Pending</p>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-base sm:text-lg font-extrabold text-navy font-display">3</span>
+                  <span className="inline-flex items-center text-[10px] font-bold text-amber-600 bg-amber-50 px-1 py-0.2 rounded">
+                    ⚡ Live
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Revenue</p>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-base sm:text-lg font-extrabold text-navy font-display">₹1,840</span>
+                  <span className="inline-flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1 py-0.2 rounded">
+                    ↑ 22%
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 shadow-2xs">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Turnaround</p>
+                <div className="mt-1 flex items-baseline justify-between">
+                  <span className="text-base sm:text-lg font-extrabold text-navy font-display">10s</span>
+                  <span className="inline-flex items-center text-[10px] font-bold text-teal bg-teal-soft px-1 py-0.2 rounded">
+                    Fast
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Visual: Counter Rush Hour Volume Bar Chart */}
+            <div className="mt-3.5 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-bold text-navy flex items-center gap-1.5">
+                    <TrendingUp className="h-3 w-3 text-teal" /> Counter Rush Hours
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">Live volume across college & office hours</p>
+                </div>
+                <span className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-bold text-teal">
+                  98% On-Time
+                </span>
+              </div>
+
+              {/* Bar Chart Visual with peak highlight and cursor pointer */}
+              <div className="relative mt-3 pt-4 pb-1">
+                <div className="flex items-end justify-between gap-2 h-20 px-2 border-b border-slate-100">
+                  {[
+                    { time: "9 AM", height: "36%", isPeak: false },
+                    { time: "11 AM", height: "65%", isPeak: false },
+                    { time: "1 PM", height: "96%", isPeak: true },
+                    { time: "3 PM", height: "52%", isPeak: false },
+                    { time: "5 PM", height: "82%", isPeak: false },
+                    { time: "7 PM", height: "40%", isPeak: false },
+                  ].map((bar) => (
+                    <div key={bar.time} className="flex-1 flex flex-col items-center gap-1 group">
+                      <div className="w-full max-w-[28px] h-full flex items-end justify-center">
+                        <div
+                          style={{ height: bar.height }}
+                          className={`w-full rounded-t-md transition-all duration-300 ${
+                            bar.isPeak
+                              ? "bg-gradient-to-t from-teal to-emerald-400 shadow-md shadow-teal/30 ring-2 ring-teal/30"
+                              : "bg-slate-200 hover:bg-slate-300"
+                          }`}
+                        />
+                      </div>
+                      <span className={`text-[9px] font-mono ${bar.isPeak ? "font-bold text-teal" : "text-slate-400"}`}>
+                        {bar.time}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Simulated Cursor Pointer on 1 PM Peak */}
+                <div className="absolute top-1 left-[40%] flex items-center gap-1 -translate-x-1/2 pointer-events-none">
+                  <div className="rounded-md bg-navy px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+                    Rush Peak: 42/hr
+                  </div>
+                  <MousePointer2 className="h-3.5 w-3.5 text-navy fill-navy -rotate-45" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Satellite Card 1 (Top-Right, Replacing Human Photo with Live Counter Scan!) */}
+      <div className="absolute -top-3 sm:-top-5 -right-2 sm:-right-4 z-20 w-48 sm:w-56 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-3 shadow-xl transition hover:-translate-y-1">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+          <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Customer Scan
+          </span>
+          <span className="text-[9px] font-mono text-muted-foreground">2s ago</span>
+        </div>
+        <div className="mt-2 flex items-start gap-2">
+          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-teal-soft text-teal">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-bold text-navy" title="Resume_Final_2026.pdf">
+              Resume_Final_2026.pdf
+            </p>
+            <p className="text-[10px] text-muted-foreground">2 pgs · Colour Single</p>
+          </div>
+        </div>
+        <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-1.5 text-xs">
+          <span className="font-extrabold text-navy">₹20.00</span>
+          <span className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-bold text-teal">
+            Ready to Print
+          </span>
+        </div>
+      </div>
+
+      {/* Floating Satellite Card 2 (Bottom-Left, Replacing Human Photo with Auto-Priced Order!) */}
+      <div className="absolute -bottom-6 -left-2 sm:-left-4 z-20 w-52 sm:w-60 rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-3 shadow-xl transition hover:-translate-y-1">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+          <span className="flex items-center gap-1 text-[10px] font-bold text-teal">
+            <Zap className="h-3 w-3 text-amber-500" />
+            Auto-Calculated Order
+          </span>
+          <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[9px] font-mono text-slate-600 font-bold">
+            Token #102
+          </span>
+        </div>
+        <div className="mt-2 flex items-start gap-2">
+          <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-600">
+            <FileText className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-bold text-navy" title="DBMS_Unit4_Notes.pdf">
+              DBMS_Unit4_Notes.pdf
+            </p>
+            <p className="text-[10px] text-muted-foreground">38 pages · B/W Double</p>
+          </div>
+        </div>
+        <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-1.5">
+          <div>
+            <span className="text-[9px] text-muted-foreground">Pre-calculated</span>
+            <p className="text-xs font-extrabold text-navy">₹57.00</p>
+          </div>
+          <span className="rounded-lg bg-teal px-2.5 py-1 text-[10px] font-bold text-white shadow-2xs">
+            Print Ready ↗
+          </span>
+        </div>
+      </div>
+
+      {/* Floating Tool Pill (Bottom-Right, similar to black circular tool badge in Dribbble) */}
+      <div className="hidden sm:flex absolute bottom-8 -right-3 z-20 items-center gap-1.5 rounded-full border border-slate-900 bg-slate-950 px-2.5 py-1 text-[10px] font-bold text-white shadow-lg">
+        <ShieldCheck className="h-3 w-3 text-teal" />
+        <span>100% Virus-Free</span>
       </div>
     </div>
   );
