@@ -58,27 +58,27 @@
   --popover-foreground: #0f172a;
   --primary: #0f172a;
   --primary-foreground: #ffffff;
-  --teal: #0d9488;
-  --teal-soft: #f0fdfa;
+  --teal: #1668fe;
+  --teal-soft: #eff6ff;
   --teal-foreground: #ffffff;
   --secondary: #f8fafc;
   --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #f0fdfa;
-  --accent-foreground: #0f766e;
+  --accent: #eff6ff;
+  --accent-foreground: #1668fe;
   --success: #16a34a;
   --success-soft: #f0fdf4;
   --warning: #d97706;
   --warning-soft: #fffbeb;
-  --info: #2563eb;
+  --info: #1668fe;
   --info-soft: #eff6ff;
   --destructive: #dc2626;
   --destructive-soft: #fef2f2;
   --destructive-foreground: #ffffff;
   --border: #e2e8f0;
   --input: #cbd5e1;
-  --ring: #0d9488;
+  --ring: #1668fe;
 }
 
 @layer base {
@@ -134,7 +134,7 @@
   color: #0f172a !important; padding: 0.65rem 0.85rem; font-size: 16px !important; outline: none;
   pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important;
   caret-color: #0f172a !important;
-  &:focus { border-color: #0d9488; box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2); }
+  &:focus { border-color: #1668fe; box-shadow: 0 0 0 2px rgba(22, 104, 254, 0.2); }
 }
 @utility bg-grid {
   background-image: radial-gradient(color-mix(in oklab, var(--navy) 9%, transparent) 1px, transparent 1px);

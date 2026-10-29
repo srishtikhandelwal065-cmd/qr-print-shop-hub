@@ -736,7 +736,7 @@ function HeroVisualComposition() {
                           style={{ height: bar.height }}
                           className={`w-full rounded-t-md transition-all duration-300 ${
                             bar.isPeak
-                              ? "bg-gradient-to-t from-teal to-emerald-400 shadow-md shadow-teal/30 ring-2 ring-teal/30"
+                              ? "bg-gradient-to-t from-teal to-blue-400 shadow-md shadow-teal/30 ring-2 ring-teal/30"
                               : "bg-slate-200 hover:bg-slate-300"
                           }`}
                         />

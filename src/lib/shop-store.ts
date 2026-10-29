@@ -589,7 +589,7 @@ export async function printOrderFile(o: Order) {
               box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             }
             .token-pill {
-              background: #0d9488;
+              background: #1668fe;
               color: white;
               font-weight: 800;
               font-size: 15px;
@@ -607,7 +607,7 @@ export async function printOrderFile(o: Order) {
               font-size: 14px;
             }
             .btn-print {
-              background: #0d9488;
+              background: #1668fe;
               color: white;
               border: none;
               padding: 9px 20px;
@@ -618,10 +618,10 @@ export async function printOrderFile(o: Order) {
               display: inline-flex;
               align-items: center;
               gap: 8px;
-              box-shadow: 0 2px 8px rgba(13,148,136,0.4);
+              box-shadow: 0 2px 8px rgba(22,104,254,0.4);
               transition: background 0.15s ease;
             }
-            .btn-print:hover { background: #0f766e; }
+            .btn-print:hover { background: #1356d2; }
             .preview-container {
               flex: 1;
               display: flex;
@@ -694,7 +694,7 @@ export async function printOrderFile(o: Order) {
             border-bottom: 1px solid rgba(255,255,255,0.1);
           }
           .token-pill {
-            background: #0d9488;
+            background: #1668fe;
             color: white;
             font-weight: 800;
             font-size: 14px;
@@ -703,7 +703,7 @@ export async function printOrderFile(o: Order) {
           }
           .doc-info { margin-left: 12px; font-size: 13px; color: #cbd5e1; }
           .btn-print {
-            background: #0d9488;
+            background: #1668fe;
             color: white;
             border: none;
             padding: 8px 18px;
@@ -712,7 +712,7 @@ export async function printOrderFile(o: Order) {
             font-size: 13px;
             cursor: pointer;
           }
-          .btn-print:hover { background: #0f766e; }
+          .btn-print:hover { background: #1356d2; }
           iframe {
             width: 100%;
             height: calc(100% - 52px);
@@ -738,7 +738,7 @@ export async function printOrderFile(o: Order) {
             <button class="btn-print" onclick="try{document.getElementById('pdfFrame').contentWindow.print();}catch(e){window.print();}">
               🖨️ Print #${o.tokenNo}
             </button>
-            <a href="${fileUrl}" target="_blank" style="color:#0d9488; font-size:12px; text-decoration:none; font-weight:600;">Open Standalone PDF ↗</a>
+            <a href="${fileUrl}" target="_blank" style="color:#1668fe; font-size:12px; text-decoration:none; font-weight:600;">Open Standalone PDF ↗</a>
           </div>
         </div>
         <iframe id="pdfFrame" src="${fileUrl}" onload="setTimeout(function(){ try { document.getElementById('pdfFrame').contentWindow.print(); } catch(e){} }, 500);"></iframe>
