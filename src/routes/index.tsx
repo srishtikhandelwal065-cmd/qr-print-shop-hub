@@ -229,59 +229,26 @@ function Home() {
           {/* 2-Column Showcase: Left Video Animation + Right Points in Short */}
           <div className="mt-12 sm:mt-16 grid gap-8 lg:gap-12 lg:grid-cols-12 items-center">
             
-            {/* Left: Video Showcase (Depicting the steps in animation) */}
+            {/* Left: Video Showcase (Clean video only) */}
             <div className="lg:col-span-7">
               <div className="relative group">
                 {/* Ambient Blue Back-Glow */}
-                <div className="pointer-events-none absolute -inset-2 rounded-[32px] bg-gradient-to-tr from-blue-600/20 via-blue-500/10 to-transparent blur-2xl -z-10" />
+                <div className="pointer-events-none absolute -inset-2 rounded-[32px] bg-gradient-to-tr from-blue-600/15 via-blue-500/10 to-transparent blur-2xl -z-10" />
 
-                {/* Video Showcase Card */}
-                <div className="relative rounded-[26px] sm:rounded-[32px] border border-slate-200/90 bg-white p-3 sm:p-4 shadow-xl hover:shadow-2xl transition-all duration-300">
-                  {/* Top Bar with Status Badge */}
-                  <div className="flex items-center justify-between px-2 pb-3 pt-1">
-                    <div className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/80" />
-                      <span className="ml-2 text-[11px] font-mono text-slate-400 hidden sm:inline">printex-counter-flow.mp4</span>
-                    </div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 border border-blue-200/60">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-600 animate-pulse" />
-                      Touchless Animation
-                    </span>
-                  </div>
-
-                  {/* Video Player Container */}
-                  <div className="relative overflow-hidden rounded-2xl bg-slate-950 aspect-video shadow-inner">
-                    <video
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      preload="auto"
-                      className="w-full h-full object-cover"
-                    >
-                      <source src={howItWorksVideo} type="video/mp4" />
-                      <source src="/how-it-works-animation.mp4" type="video/mp4" />
-                      Your browser does not support HTML5 video.
-                    </video>
-                  </div>
-
-                  {/* Bottom Milestone Bar */}
-                  <div className="mt-3.5 grid grid-cols-3 gap-2 px-1 text-center">
-                    <div className="rounded-xl bg-slate-50 border border-slate-100 py-2 px-2">
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Step 1</p>
-                      <p className="text-xs font-semibold text-slate-700 truncate mt-0.5">Scan Desk QR</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 border border-slate-100 py-2 px-2">
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Step 2</p>
-                      <p className="text-xs font-semibold text-slate-700 truncate mt-0.5">Upload & Choose</p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 border border-slate-100 py-2 px-2">
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Step 3</p>
-                      <p className="text-xs font-semibold text-slate-700 truncate mt-0.5">1-Click Print</p>
-                    </div>
-                  </div>
+                {/* Video Player Container */}
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-slate-950 aspect-video shadow-xl hover:shadow-2xl transition-all duration-300">
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    className="w-full h-full object-cover"
+                  >
+                    <source src={howItWorksVideo} type="video/mp4" />
+                    <source src="/how-it-works-animation.mp4" type="video/mp4" />
+                    Your browser does not support HTML5 video.
+                  </video>
                 </div>
               </div>
             </div>
