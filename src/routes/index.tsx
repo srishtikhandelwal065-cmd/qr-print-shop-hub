@@ -392,28 +392,8 @@ function Home() {
         </div>
       </section>
 
-      {/* Reviews */}
-      <section id="reviews" className="scroll-mt-16 border-t bg-secondary py-20">
-        <div className="mx-auto max-w-6xl px-4">
-          <SectionHead eyebrow="Reviews" title="Loved by shop owners across India" />
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {[
-              ["Earlier students sent 50 files on WhatsApp and I lost track. Now everything is in one list with the price.", "Rakesh Sharma", "Sharma Xerox, Pune"],
-              ["The QR on my counter does the work. Rush hour near college is so much smoother.", "Lakshmi Iyer", "Sri Sai Prints, Chennai"],
-              ["Page counting alone saves me 30 minutes a day. Customers trust the price they see.", "Imran Qureshi", "City Copy Centre, Lucknow"],
-            ].map(([q, n, s]) => (
-              <figure key={n} className="card p-6">
-                <div className="flex gap-0.5 text-warning">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
-                <blockquote className="mt-4 text-sm leading-relaxed">“{q}”</blockquote>
-                <figcaption className="mt-5 flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">{n?.[0]}</span>
-                  <span><span className="block text-sm font-semibold">{n}</span><span className="text-xs text-muted-foreground">{s}</span></span>
-                </figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Dual Moving Testimonials Marquee Section */}
+      <DualMovingTestimonialsSection />
 
 
       {/* Redesigned Modern Footer */}
@@ -850,4 +830,166 @@ function HeroVisualComposition() {
     </div>
   );
 }
+
+interface TestimonialItem {
+  quote: string;
+  name: string;
+  shop: string;
+  initials: string;
+  gradient: string;
+  badge: string;
+}
+
+const testimonialsRow1: TestimonialItem[] = [
+  {
+    quote: "Earlier students sent 50 files on WhatsApp and I lost track of payments. Now everything is queued with exact page counts, color breakdown, and instant UPI bills.",
+    name: "Rajesh Sharma",
+    shop: "Sai Xerox & Cyber Cafe · Pune",
+    initials: "SX",
+    gradient: "from-teal to-emerald-600",
+    badge: "No WhatsApp Chaos",
+  },
+  {
+    quote: "Zero pen-drive shortcut viruses since we put the Printex standee on our counter. Customers scan with their own phones, and our billing PC stays completely safe.",
+    name: "Amit Verma",
+    shop: "Verma Print Graphics · Delhi (DU North)",
+    initials: "VG",
+    gradient: "from-blue-600 to-indigo-600",
+    badge: "Virus-Free Counter",
+  },
+  {
+    quote: "Automatic page counting alone saves us 40 minutes every single day. No more arguments with customers over colour vs B/W rates; they see the transparent price upfront.",
+    name: "Priya Sundaram",
+    shop: "Campus Prints & Stationery · Chennai",
+    initials: "CP",
+    gradient: "from-violet-600 to-purple-600",
+    badge: "Auto Page Calc",
+  },
+  {
+    quote: "During semester project rush, 20 students upload at once. They select double-side or color right on their phone screen. We just hit Print and hand over the file.",
+    name: "Vikram Patel",
+    shop: "Balaji Photostat & Digital Press · Ahmedabad",
+    initials: "BP",
+    gradient: "from-amber-500 to-orange-600",
+    badge: "Peak Rush Ready",
+  },
+];
+
+const testimonialsRow2: TestimonialItem[] = [
+  {
+    quote: "Customers get a WhatsApp status ping the moment their job is printed. Counter crowding dropped by 70% because students don't need to hover around asking 'Bhaiya hua kya?'",
+    name: "Imran Qureshi",
+    shop: "City Copy Centre · Lucknow (Hazratganj)",
+    initials: "CC",
+    gradient: "from-rose-500 to-pink-600",
+    badge: "1-Tap WhatsApp",
+  },
+  {
+    quote: "The printable counter QR stand took 2 minutes to generate. Our walk-in customers scan, upload 100-page project reports in seconds, and pay via UPI effortlessly.",
+    name: "K. Venkatesh",
+    shop: "Sri Ganesh Digital Xerox · Bengaluru",
+    initials: "SG",
+    gradient: "from-cyan-600 to-teal-600",
+    badge: "2-Min QR Setup",
+  },
+  {
+    quote: "As a female counter manager, I hated sharing my personal phone number with hundreds of walk-in strangers every day. Printex completely protected my privacy.",
+    name: "Deepa Nair",
+    shop: "Nair Documentation & Print Hub · Kochi",
+    initials: "ND",
+    gradient: "from-sky-600 to-blue-700",
+    badge: "100% Privacy",
+  },
+  {
+    quote: "For quick Aadhaar and resume prints, customers scan from outside the counter while waiting. By the time they step up, their printout is already sitting in the collection tray.",
+    name: "Manoj Chawla",
+    shop: "Chawla Offset & Quick Xerox · Jaipur",
+    initials: "CQ",
+    gradient: "from-slate-700 to-slate-900",
+    badge: "500+ Prints/Day",
+  },
+];
+
+function DribbbleQuoteIcon({ className = "h-7 w-7 text-[#2563eb]" }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z" />
+    </svg>
+  );
+}
+
+function TestimonialCard({ item }: { item: TestimonialItem }) {
+  return (
+    <div className="w-[320px] sm:w-[380px] shrink-0 rounded-2xl sm:rounded-3xl border border-slate-100 bg-[#f8fafc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:bg-white hover:border-slate-200 transition-all duration-200 flex flex-col justify-between select-none">
+      <div>
+        {/* Solid Blue Quote Icon */}
+        <DribbbleQuoteIcon className="h-7 w-7 text-[#2563eb]" />
+
+        {/* Testimonial Quote */}
+        <p className="mt-3.5 text-xs sm:text-[13.5px] leading-relaxed text-slate-600 font-normal min-h-[60px]">
+          {item.quote}
+        </p>
+      </div>
+
+      {/* Card Footer: Shop Monogram Circle, Owner Name & Shop Location */}
+      <div className="mt-5 flex items-center gap-3">
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${item.gradient} text-xs font-bold text-white shadow-xs`}
+        >
+          {item.initials}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm font-bold text-navy truncate">{item.name}</p>
+          <p className="text-[11px] text-slate-400 font-medium truncate mt-0.5">{item.shop}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DualMovingTestimonialsSection() {
+  return (
+    <section id="reviews" className="scroll-mt-24 py-16 sm:py-24 bg-slate-50/80">
+      <div className="mx-auto max-w-[1240px] px-3 sm:px-6">
+        {/* Dribbble Showcase Frame with Vibrant Royal Blue Border */}
+        <div className="relative rounded-[26px] sm:rounded-[36px] bg-[#2563eb] p-3 sm:p-5 md:p-7 shadow-2xl overflow-hidden">
+          {/* Inner White Stage */}
+          <div className="relative rounded-[20px] sm:rounded-[28px] bg-white py-12 sm:py-16 overflow-hidden">
+            {/* Centered Heading */}
+            <div className="text-center mb-9 sm:mb-12 px-4">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-navy">
+                about our presence.
+              </h2>
+              <p className="mt-2 text-xs sm:text-sm text-slate-500 font-medium">
+                Loved by 1,200+ print & xerox counters across India
+              </p>
+            </div>
+
+            {/* Dual Moving Marquee Container with Left & Right White Fade Masks */}
+            <div className="relative w-full overflow-hidden space-y-4 sm:space-y-6 pause-on-hover">
+              {/* Left & Right Smooth Fade Masks */}
+              <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-r from-white via-white/90 to-transparent z-10" />
+              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-l from-white via-white/90 to-transparent z-10" />
+
+              {/* Row 1: Moves Left (scrolling right-to-left) */}
+              <div className="flex w-max gap-4 sm:gap-6 animate-marquee-left">
+                {[...testimonialsRow1, ...testimonialsRow1].map((item, idx) => (
+                  <TestimonialCard key={`row1-${idx}`} item={item} />
+                ))}
+              </div>
+
+              {/* Row 2: Moves Right (scrolling left-to-right, vice versa!) */}
+              <div className="flex w-max gap-4 sm:gap-6 animate-marquee-right">
+                {[...testimonialsRow2, ...testimonialsRow2].map((item, idx) => (
+                  <TestimonialCard key={`row2-${idx}`} item={item} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
