@@ -4,7 +4,7 @@ Build Printex, a modern, responsive SaaS website for Indian photocopy shops and 
 
 Design: Clean, professional, light theme with white backgrounds, navy typography, teal accents, subtle shadows, rounded cards, and minimal animations. Use React, TypeScript, Tailwind CSS, and React Router.
 
-1. Homepage: Include a navbar with logo, Features, Reviews, Contact, and Get Started. Hero headline: “Manage Your Print Shop in One Screen.” Add a short description, “Get My Shop QR Code” and “Find Your Shop to Upload Files” buttons, plus a realistic dashboard preview. Include How It Works, Features, Reviews, and Footer sections.
+1. Homepage: Include a navbar with logo, Features, Reviews, Contact, and Get Started. Hero headline: “Replace Chaotic Chats with a Professional Counter Workflow.” Add a short description, “Get My Shop QR Code” and “Find Your Shop to Upload Files” buttons, plus an interactive counter preview and Why Shop Owners Switch comparison. Include How It Works, Features, Reviews, and Footer sections.
 
 2. Shop Registration: Create a form with Shop Name, Owner Name, WhatsApp Number, Shop Address with Detect Location, optional Referral Code, and State dropdown. Add a “Create Shop & Open Dashboard” button with validation.
 
