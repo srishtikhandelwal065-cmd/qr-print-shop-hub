@@ -934,11 +934,11 @@ export function shopUploadUrl(id: string) {
     // If running on localhost or 127.0.0.1, phone cameras cannot reach 'localhost:8080'.
     // Use the live deployed URL so scanning from a phone immediately works!
     if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      return `https://printex.rolexnewbio.com/s/${cleanId}`;
+      return `https://printex.touranzza.com/s/${cleanId}`;
     }
     return `${origin}/s/${cleanId}`;
   }
-  return `https://printex.rolexnewbio.com/s/${cleanId}`;
+  return `https://printex.touranzza.com/s/${cleanId}`;
 }
 
 /**
