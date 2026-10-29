@@ -235,8 +235,8 @@ function Home() {
                 {/* Ambient Blue Back-Glow */}
                 <div className="pointer-events-none absolute -inset-2 rounded-[32px] bg-gradient-to-tr from-blue-600/15 via-blue-500/10 to-transparent blur-2xl -z-10" />
 
-                {/* Video Player Container */}
-                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-slate-950 aspect-video shadow-xl hover:shadow-2xl transition-all duration-300">
+                {/* Video Player Container with Blue Border */}
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 sm:border-[3px] border-blue-600 bg-slate-950 aspect-video shadow-xl shadow-blue-500/10 hover:shadow-2xl transition-all duration-300">
                   <video
                     autoPlay
                     loop
@@ -253,61 +253,52 @@ function Home() {
               </div>
             </div>
 
-            {/* Right: Points in Short */}
-            <div className="lg:col-span-5 flex flex-col gap-4 sm:gap-5">
+            {/* Right: Points in Short (One-Liners) */}
+            <div className="lg:col-span-5 flex flex-col gap-3.5 sm:gap-4">
               {[
                 {
                   step: "01",
                   icon: QrCode,
                   title: "Display your QR",
-                  desc: "Stick your shop's unique QR poster at the billing desk. Customers scan directly with their phone camera—no app download needed.",
-                  tag: "Zero app download",
+                  desc: "Customers scan your counter QR directly—no app or login required.",
                 },
                 {
                   step: "02",
                   icon: Smartphone,
                   title: "Customer uploads",
-                  desc: "Customers pick PDFs/images, choose B/W or Colour, sides & copies. Exact transparent pricing is calculated upfront.",
-                  tag: "Auto page calculation",
+                  desc: "Pick files, choose B/W or Colour, and view instant live pricing.",
                 },
                 {
                   step: "03",
                   icon: Printer,
                   title: "You print & collect",
-                  desc: "Orders land on your shop screen instantly. Hit Print, collect payment via your normal QR or cash, and hand over the printout.",
-                  tag: "3x faster counter",
+                  desc: "Orders arrive on your screen instantly—hit print and hand over.",
                 },
-              ].map(({ step, icon: Icon, title, desc, tag }) => (
+              ].map(({ step, icon: Icon, title, desc }) => (
                 <div
                   key={step}
-                  className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-5 shadow-xs hover:border-blue-400 hover:shadow-md transition-all duration-200"
+                  className="group relative rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-4.5 shadow-xs hover:border-blue-500 hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Step Icon & Number Badge */}
+                  <div className="flex items-center gap-3.5 sm:gap-4">
+                    {/* Step Icon */}
                     <div className="shrink-0">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200 shadow-xs">
-                        <Icon className="h-6 w-6" />
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200 shadow-xs">
+                        <Icon className="h-5 w-5" />
                       </div>
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-base sm:text-lg font-bold text-navy group-hover:text-blue-600 transition-colors duration-150">
+                        <h3 className="text-base font-bold text-navy group-hover:text-blue-600 transition-colors duration-150">
                           {title}
                         </h3>
-                        <span className="text-xs font-mono font-extrabold text-blue-600/70">
+                        <span className="text-xs font-mono font-extrabold text-blue-600">
                           {step}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      <p className="mt-0.5 text-xs sm:text-[13px] text-slate-500 leading-normal">
                         {desc}
                       </p>
-                      <div className="mt-2.5">
-                        <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-700 transition-colors duration-150">
-                          <Check className="h-3 w-3 text-blue-600" />
-                          {tag}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
