@@ -14,10 +14,10 @@ import { useQuery } from "@tanstack/react-query";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Printex — Replace Chaotic Chats with a Professional Counter Workflow" },
-      { name: "description", content: "Why Indian photocopy and xerox shops switch to Printex: Zero WhatsApp chaos, virus-free counter QR uploads, automatic page counts, and instant UPI pricing." },
-      { property: "og:title", content: "Printex — Replace Chaotic Chats with a Professional Counter Workflow" },
-      { property: "og:description", content: "Stop WhatsApp chaos and infected pen drives. Customers scan your counter QR, choose print options, and you print from one screen." },
+      { title: "Printex — Manage Every Print Order in One Place" },
+      { name: "description", content: "The Smarter Way to Run Your Print Shop. Customers scan your counter QR code, upload files, and you manage every order with instant pricing from one screen." },
+      { property: "og:title", content: "Printex — Manage Every Print Order in One Place" },
+      { property: "og:description", content: "The Smarter Way to Run Your Print Shop. Your own shop QR code, instant file uploads, and a single dashboard for every print order." },
     ],
   }),
   component: Home,
@@ -77,16 +77,16 @@ function Home() {
         <div className="bg-grid absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
         <div className="relative mx-auto max-w-6xl px-4 pb-16 pt-12 text-center md:pt-20">
           <div className="inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal-soft px-3.5 py-1 text-xs font-bold text-teal shadow-xs">
-            <Sparkles className="h-3.5 w-3.5 text-teal" /> WHY SHOP OWNERS SWITCH
+            <span className="h-1.5 w-1.5 rounded-full bg-teal animate-pulse" /> Built for Indian xerox & print shops
           </div>
           <h1 className="fade-up mx-auto mt-5 max-w-4xl text-3xl sm:text-5xl md:text-6xl font-extrabold leading-[1.14] tracking-tight text-navy">
-            Replace Chaotic Chats with a{" "}
-            <span className="text-teal underline decoration-teal/30 decoration-wavy">
-              Professional Workflow.
-            </span>
+            Manage Every Print Order in <span className="text-teal">One Place.</span>
           </h1>
-          <p className="mx-auto mt-4 sm:mt-5 max-w-2xl text-sm sm:text-base text-muted-foreground md:text-lg leading-relaxed">
-            Say goodbye to buried WhatsApp documents, virus-infected pen drives, and manual page calculation. Customers scan your counter QR code — you see every print order with auto-counted pages and exact pricing ready to print.
+          <p className="mx-auto mt-3.5 max-w-2xl text-lg sm:text-xl font-semibold text-navy/85 md:text-2xl leading-relaxed">
+            The Smarter Way to Run Your Print Shop.
+          </p>
+          <p className="mx-auto mt-2 max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+            No more WhatsApp chaos or pen-drive viruses. Customers scan your counter QR, upload files, and pick print options — you see every order with exact price calculated.
           </p>
           <div className="mt-7 sm:mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link to="/register" className="btn btn-teal px-7 py-3.5 min-h-[48px] text-sm font-bold shadow-lg shadow-teal/20">
