@@ -932,10 +932,10 @@ function DribbbleQuoteIcon({ className = "h-7 w-7 text-[#2563eb]" }: { className
 
 function TestimonialCard({ item }: { item: TestimonialItem }) {
   return (
-    <div className="w-[320px] sm:w-[380px] shrink-0 rounded-2xl sm:rounded-3xl border border-slate-100 bg-[#f8fafc] p-5 sm:p-6 shadow-xs hover:shadow-md hover:bg-white hover:border-slate-200 transition-all duration-200 flex flex-col justify-between select-none">
+    <div className="w-[320px] sm:w-[380px] shrink-0 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between select-none">
       <div>
         {/* Solid Blue Quote Icon */}
-        <DribbbleQuoteIcon className="h-7 w-7 text-[#2563eb]" />
+        <DribbbleQuoteIcon className="h-7 w-7 text-blue-600" />
 
         {/* Testimonial Quote */}
         <p className="mt-3.5 text-xs sm:text-[13.5px] leading-relaxed text-slate-600 font-normal min-h-[60px]">
@@ -961,43 +961,35 @@ function TestimonialCard({ item }: { item: TestimonialItem }) {
 
 function DualMovingTestimonialsSection() {
   return (
-    <section id="reviews" className="scroll-mt-24 py-16 sm:py-24 bg-slate-50/80">
-      <div className="mx-auto max-w-[1240px] px-3 sm:px-6">
-        {/* Dribbble Showcase Frame with Vibrant Royal Blue Border */}
-        <div className="relative rounded-[26px] sm:rounded-[36px] bg-[#2563eb] p-3 sm:p-5 md:p-7 shadow-2xl overflow-hidden">
-          {/* Inner White Stage */}
-          <div className="relative rounded-[20px] sm:rounded-[28px] bg-white py-12 sm:py-16 overflow-hidden">
-            {/* Centered Heading */}
-            <div className="text-center mb-9 sm:mb-12 px-4">
-              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-navy">
-                about our presence.
-              </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-500 font-medium">
-                Loved by 1,200+ print & xerox counters across India
-              </p>
-            </div>
+    <section id="reviews" className="scroll-mt-20 py-16 sm:py-24 bg-slate-50/60 border-t border-slate-200/80 overflow-hidden">
+      {/* Centered Heading */}
+      <div className="text-center mb-10 sm:mb-14 px-4 max-w-3xl mx-auto">
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-navy">
+          about our presence.
+        </h2>
+        <p className="mt-2.5 text-sm sm:text-base text-slate-500 font-medium">
+          Loved by 1,200+ print & xerox counters across India
+        </p>
+      </div>
 
-            {/* Dual Moving Marquee Container with Left & Right White Fade Masks */}
-            <div className="relative w-full overflow-hidden space-y-4 sm:space-y-6 pause-on-hover">
-              {/* Left & Right Smooth Fade Masks */}
-              <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-r from-white via-white/90 to-transparent z-10" />
-              <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-28 bg-gradient-to-l from-white via-white/90 to-transparent z-10" />
+      {/* Dual Moving Marquee Container with Left & Right Fade Masks */}
+      <div className="relative w-full overflow-hidden space-y-4 sm:space-y-6 pause-on-hover">
+        {/* Left & Right Smooth Fade Masks */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-r from-slate-50/90 via-slate-50/60 to-transparent z-10" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-16 sm:w-36 bg-gradient-to-l from-slate-50/90 via-slate-50/60 to-transparent z-10" />
 
-              {/* Row 1: Moves Left (scrolling right-to-left) */}
-              <div className="flex w-max gap-4 sm:gap-6 animate-marquee-left">
-                {[...testimonialsRow1, ...testimonialsRow1].map((item, idx) => (
-                  <TestimonialCard key={`row1-${idx}`} item={item} />
-                ))}
-              </div>
+        {/* Row 1: Moves Left (scrolling right-to-left) */}
+        <div className="flex w-max gap-4 sm:gap-6 animate-marquee-left">
+          {[...testimonialsRow1, ...testimonialsRow1].map((item, idx) => (
+            <TestimonialCard key={`row1-${idx}`} item={item} />
+          ))}
+        </div>
 
-              {/* Row 2: Moves Right (scrolling left-to-right, vice versa!) */}
-              <div className="flex w-max gap-4 sm:gap-6 animate-marquee-right">
-                {[...testimonialsRow2, ...testimonialsRow2].map((item, idx) => (
-                  <TestimonialCard key={`row2-${idx}`} item={item} />
-                ))}
-              </div>
-            </div>
-          </div>
+        {/* Row 2: Moves Right (scrolling left-to-right, vice versa!) */}
+        <div className="flex w-max gap-4 sm:gap-6 animate-marquee-right">
+          {[...testimonialsRow2, ...testimonialsRow2].map((item, idx) => (
+            <TestimonialCard key={`row2-${idx}`} item={item} />
+          ))}
         </div>
       </div>
     </section>
