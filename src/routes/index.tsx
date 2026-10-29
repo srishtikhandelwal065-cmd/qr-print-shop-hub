@@ -127,7 +127,7 @@ function Home() {
       </section>
 
       {/* Why Shop Owners Switch Section */}
-      <section className="border-t bg-gradient-to-b from-white via-slate-50/70 to-white py-16 sm:py-20">
+      <section id="why-switch" className="scroll-mt-20 border-t bg-gradient-to-b from-white via-slate-50/70 to-white py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4">
           <div className="text-center">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/40 bg-teal-soft px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-teal">
@@ -142,55 +142,67 @@ function Home() {
           </div>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="card p-5 border-t-4 border-t-rose-500 hover:shadow-lg transition">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-rose-50 text-rose-600 font-bold">
-                <MessageCircle className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-bold text-navy text-base">Zero WhatsApp Clutter</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                No personal phone numbers handed out or 50 student PDFs cluttering your phone memory and chat list.
-              </p>
-              <div className="mt-4 rounded-lg bg-rose-50/80 p-2.5 text-[11px] text-rose-700 font-medium">
-                ❌ Before: "Bhaiya doc bhej diya search karo"
+            {/* Card 1 */}
+            <div className="group rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-blue-500/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between">
+              <div>
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
+                  <MessageCircle className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-bold text-navy text-base">Zero WhatsApp Clutter</h3>
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  No personal phone numbers handed out or 50 student PDFs cluttering your phone memory and chat list.
+                </p>
+              </div>
+              <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-[11px] text-slate-600 font-medium">
+                <span className="text-slate-700 font-bold">✕ Old way:</span> Searching buried WhatsApp chats
               </div>
             </div>
 
-            <div className="card p-5 border-t-4 border-t-teal hover:shadow-lg transition">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-teal-soft text-teal font-bold">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-bold text-navy text-base">100% Virus-Free Counter</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Never insert a stranger's infected USB pen-drive into your shop's billing computer again. Files land securely online.
-              </p>
-              <div className="mt-4 rounded-lg bg-teal-soft p-2.5 text-[11px] text-teal font-medium">
-                ✅ With Printex: Touchless QR cloud transfer
+            {/* Card 2 */}
+            <div className="group rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-blue-500/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between">
+              <div>
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-bold text-navy text-base">100% Virus-Free Counter</h3>
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  Never insert a stranger's infected USB pen-drive into your shop's billing computer again. Files land securely online.
+                </p>
+              </div>
+              <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-[11px] text-slate-600 font-medium">
+                <span className="text-blue-600 font-bold">✓ Printex:</span> Touchless QR cloud transfer
               </div>
             </div>
 
-            <div className="card p-5 border-t-4 border-t-amber-500 hover:shadow-lg transition">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-600 font-bold">
-                <Calculator className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-bold text-navy text-base">Automatic Page & Price</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                PDF pages are counted automatically with B/W and colour pricing pre-calculated. Zero rate disputes with customers.
-              </p>
-              <div className="mt-4 rounded-lg bg-amber-50/80 p-2.5 text-[11px] text-amber-700 font-medium">
-                ✅ Upfront estimate: Exact amount ready
+            {/* Card 3 */}
+            <div className="group rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-blue-500/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between">
+              <div>
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
+                  <Calculator className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-bold text-navy text-base">Automatic Page & Price</h3>
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  PDF pages are counted automatically with B/W and colour pricing pre-calculated. Zero rate disputes with customers.
+                </p>
+              </div>
+              <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-[11px] text-slate-600 font-medium">
+                <span className="text-blue-600 font-bold">✓ Printex:</span> Exact upfront amount ready
               </div>
             </div>
 
-            <div className="card p-5 border-t-4 border-t-indigo-500 hover:shadow-lg transition">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50 text-indigo-600 font-bold">
-                <Zap className="h-5 w-5" />
-              </span>
-              <h3 className="mt-4 font-bold text-navy text-base">10-Second Turnaround</h3>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                Customers get a Token Number. Click [Print], hand over pages, hit [Done], and seamlessly take the next order.
-              </p>
-              <div className="mt-4 rounded-lg bg-indigo-50/80 p-2.5 text-[11px] text-indigo-700 font-medium">
-                ⚡ 3x faster counter throughput in rush hour
+            {/* Card 4 */}
+            <div className="group rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs hover:border-blue-500/40 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between">
+              <div>
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600 font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors duration-200">
+                  <Zap className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-bold text-navy text-base">10-Second Turnaround</h3>
+                <p className="mt-2 text-xs sm:text-sm text-slate-500 leading-relaxed">
+                  Customers get a Token Number. Click [Print], hand over pages, hit [Done], and seamlessly take the next order.
+                </p>
+              </div>
+              <div className="mt-5 rounded-xl bg-slate-50 border border-slate-100 p-2.5 text-[11px] text-slate-600 font-medium">
+                <span className="text-blue-600 font-bold">⚡ Rush Hour:</span> 3x faster counter throughput
               </div>
             </div>
           </div>
@@ -285,7 +297,7 @@ function Home() {
             {/* Bento 2: Auto Page & Pricing Engine (lg:col-span-5) */}
             <div className="lg:col-span-5 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300 group">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700 uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-3 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
                   <Calculator className="h-3.5 w-3.5" /> Instant Pricing
                 </span>
                 <h3 className="mt-4 text-xl font-bold text-navy">
@@ -302,7 +314,7 @@ function Home() {
                   <span className="font-semibold text-navy flex items-center gap-1.5">
                     <FileText className="h-3.5 w-3.5 text-teal" /> College_Notes.pdf
                   </span>
-                  <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                  <span className="rounded-md bg-blue-100/80 px-2 py-0.5 text-[10px] font-bold text-blue-800">
                     24 pages detected
                   </span>
                 </div>
@@ -316,7 +328,7 @@ function Home() {
             {/* Bento 3: 100% Virus-Free Shield (lg:col-span-4) */}
             <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-soft border border-teal/30 px-3 py-1 text-[11px] font-bold text-teal uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-3 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
                   <ShieldCheck className="h-3.5 w-3.5" /> Zero Hardware Risk
                 </span>
                 <h3 className="mt-4 text-lg font-bold text-navy">
@@ -328,13 +340,13 @@ function Home() {
               </div>
 
               <div className="mt-5 space-y-2">
-                <div className="flex items-center justify-between rounded-xl border border-red-200/80 bg-red-50/70 p-2 text-[11px]">
-                  <span className="font-bold text-red-700">❌ USB Pen Drive</span>
-                  <span className="text-red-600 font-medium">Infected files & slow</span>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-100/80 p-2 text-[11px]">
+                  <span className="font-bold text-slate-700">✕ USB Pen Drive</span>
+                  <span className="text-slate-500 font-medium">Infected files & slow</span>
                 </div>
-                <div className="flex items-center justify-between rounded-xl border border-teal/30 bg-teal-soft p-2 text-[11px]">
-                  <span className="font-bold text-teal">✅ Direct QR Cloud</span>
-                  <span className="text-teal font-medium">100% Sandboxed & Safe</span>
+                <div className="flex items-center justify-between rounded-xl border border-blue-200/80 bg-blue-50 p-2 text-[11px]">
+                  <span className="font-bold text-blue-700">✓ Direct QR Cloud</span>
+                  <span className="text-blue-700 font-medium">100% Sandboxed & Safe</span>
                 </div>
               </div>
             </div>
@@ -342,7 +354,7 @@ function Home() {
             {/* Bento 4: Live Order Queue with Done Tracking (lg:col-span-4) */}
             <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-[11px] font-bold text-indigo-700 uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-3 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
                   <Zap className="h-3.5 w-3.5" /> Counter Speed
                 </span>
                 <h3 className="mt-4 text-lg font-bold text-navy">
@@ -360,8 +372,8 @@ function Home() {
                   <span className="rounded-md bg-teal px-2 py-0.5 text-[10px] font-bold text-white">Printing</span>
                 </div>
                 <div className="flex items-center justify-between text-xs border-t border-slate-200/60 pt-1.5">
-                  <span className="font-bold text-red-800 line-through">Token #17</span>
-                  <span className="rounded-md bg-red-100 text-red-700 px-2 py-0.5 text-[10px] font-bold">Done ✓</span>
+                  <span className="font-medium text-slate-400 line-through">Token #17</span>
+                  <span className="rounded-md bg-slate-100 text-slate-600 px-2 py-0.5 text-[10px] font-bold">Done ✓</span>
                 </div>
               </div>
             </div>
@@ -369,7 +381,7 @@ function Home() {
             {/* Bento 5: WhatsApp Direct Fallback (lg:col-span-4) */}
             <div className="lg:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 flex flex-col justify-between shadow-card hover:shadow-xl transition-all duration-300">
               <div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/60 px-3 py-1 text-[11px] font-bold text-blue-700 uppercase tracking-wider">
                   <MessageCircle className="h-3.5 w-3.5" /> Always Connected
                 </span>
                 <h3 className="mt-4 text-lg font-bold text-navy">
@@ -380,11 +392,11 @@ function Home() {
                 </p>
               </div>
 
-              <div className="mt-5 rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 flex items-center justify-between text-xs">
-                <span className="font-bold text-emerald-800 flex items-center gap-1.5">
-                  <MessageCircle className="h-4 w-4 text-emerald-600" /> WhatsApp Chat
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-3 flex items-center justify-between text-xs">
+                <span className="font-bold text-navy flex items-center gap-1.5">
+                  <MessageCircle className="h-4 w-4 text-blue-600" /> WhatsApp Chat
                 </span>
-                <span className="text-[11px] text-emerald-700 font-semibold">1-Tap Send ↗</span>
+                <span className="text-[11px] text-blue-600 font-semibold">1-Tap Send ↗</span>
               </div>
             </div>
 
@@ -846,7 +858,7 @@ const testimonialsRow1: TestimonialItem[] = [
     name: "Rajesh Sharma",
     shop: "Sai Xerox & Cyber Cafe · Pune",
     initials: "SX",
-    gradient: "from-teal to-emerald-600",
+    gradient: "from-blue-600 to-indigo-600",
     badge: "No WhatsApp Chaos",
   },
   {
@@ -854,7 +866,7 @@ const testimonialsRow1: TestimonialItem[] = [
     name: "Amit Verma",
     shop: "Verma Print Graphics · Delhi (DU North)",
     initials: "VG",
-    gradient: "from-blue-600 to-indigo-600",
+    gradient: "from-slate-700 to-navy",
     badge: "Virus-Free Counter",
   },
   {
@@ -862,7 +874,7 @@ const testimonialsRow1: TestimonialItem[] = [
     name: "Priya Sundaram",
     shop: "Campus Prints & Stationery · Chennai",
     initials: "CP",
-    gradient: "from-violet-600 to-purple-600",
+    gradient: "from-sky-600 to-blue-700",
     badge: "Auto Page Calc",
   },
   {
@@ -870,7 +882,7 @@ const testimonialsRow1: TestimonialItem[] = [
     name: "Vikram Patel",
     shop: "Balaji Photostat & Digital Press · Ahmedabad",
     initials: "BP",
-    gradient: "from-amber-500 to-orange-600",
+    gradient: "from-blue-700 to-indigo-800",
     badge: "Peak Rush Ready",
   },
 ];
@@ -881,7 +893,7 @@ const testimonialsRow2: TestimonialItem[] = [
     name: "Imran Qureshi",
     shop: "City Copy Centre · Lucknow (Hazratganj)",
     initials: "CC",
-    gradient: "from-rose-500 to-pink-600",
+    gradient: "from-indigo-600 to-blue-800",
     badge: "1-Tap WhatsApp",
   },
   {
@@ -889,7 +901,7 @@ const testimonialsRow2: TestimonialItem[] = [
     name: "K. Venkatesh",
     shop: "Sri Ganesh Digital Xerox · Bengaluru",
     initials: "SG",
-    gradient: "from-cyan-600 to-teal-600",
+    gradient: "from-blue-500 to-blue-700",
     badge: "2-Min QR Setup",
   },
   {
@@ -897,7 +909,7 @@ const testimonialsRow2: TestimonialItem[] = [
     name: "Deepa Nair",
     shop: "Nair Documentation & Print Hub · Kochi",
     initials: "ND",
-    gradient: "from-sky-600 to-blue-700",
+    gradient: "from-navy to-slate-800",
     badge: "100% Privacy",
   },
   {
@@ -905,7 +917,7 @@ const testimonialsRow2: TestimonialItem[] = [
     name: "Manoj Chawla",
     shop: "Chawla Offset & Quick Xerox · Jaipur",
     initials: "CQ",
-    gradient: "from-slate-700 to-slate-900",
+    gradient: "from-slate-800 to-slate-950",
     badge: "500+ Prints/Day",
   },
 ];
