@@ -531,8 +531,8 @@ function Home() {
             <div className="lg:col-span-3 space-y-3 text-xs sm:text-sm">
               <p className="text-xs font-bold uppercase tracking-wider text-white">Support & Contact</p>
               <div className="space-y-2 text-slate-400">
-                <a href="mailto:contact.printex@gmail.com" className="flex items-center gap-2 hover:text-teal transition-colors">
-                  <Mail className="h-4 w-4 text-teal" /> contact.printex@gmail.com
+                <a href="mailto:info.printexx@gmail.com" className="flex items-center gap-2 hover:text-teal transition-colors">
+                  <Mail className="h-4 w-4 text-teal" /> info.printexx@gmail.com
                 </a>
                 <a href="tel:+918957759289" className="flex items-center gap-2 hover:text-teal transition-colors">
                   <Phone className="h-4 w-4 text-teal" /> +91 89577 59289
