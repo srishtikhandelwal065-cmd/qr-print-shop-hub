@@ -109,13 +109,14 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * Loads the poster template from bundled assets or URL fallbacks
  */
 async function loadTemplateImage(): Promise<{ img: HTMLImageElement; isClean: boolean }> {
+  const version = "v=blue-20261030b";
   const candidates: Array<{ src: string; isClean: boolean }> = [
     { src: posterTemplateCleanUrl, isClean: true },
-    { src: "/poster-template-clean.png", isClean: true },
-    { src: "./poster-template-clean.png", isClean: true },
+    { src: `/poster-template-clean.png?${version}`, isClean: true },
+    { src: `./poster-template-clean.png?${version}`, isClean: true },
     { src: posterTemplateRawUrl, isClean: false },
-    { src: "/poster-template.png", isClean: false },
-    { src: "./poster-template.png", isClean: false },
+    { src: `/poster-template.png?${version}`, isClean: false },
+    { src: `./poster-template.png?${version}`, isClean: false },
   ];
 
   for (const candidate of candidates) {
@@ -132,9 +133,9 @@ async function loadTemplateImage(): Promise<{ img: HTMLImageElement; isClean: bo
 }
 
 /**
- * Generates and downloads a print-ready A4 PDF poster for the shop
+ * Renders the personalized shop poster onto a high-resolution 2D canvas (1364 x 2048)
  */
-export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOptions): Promise<void> {
+export async function renderShopPosterCanvas({ shop, qrCanvas }: GeneratePosterOptions): Promise<HTMLCanvasElement> {
   // Ensure custom and system fonts are ready
   try {
     if (document.fonts?.ready) {
@@ -168,8 +169,8 @@ export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOp
 
   // If using original template as fallback, clean the placeholder areas manually
   if (!isClean) {
-    // Top pill
-    ctx.fillStyle = "#ebf9f7";
+    // Top pill (clean soft blue to match the new poster template)
+    ctx.fillStyle = "#edf6fe";
     ctx.fillRect(190, 280, 980, 210);
 
     // QR center
@@ -301,10 +302,16 @@ export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOp
   }
   ctx.fillText(formattedPhone, phoneStartX, 1864);
 
-  // ==========================================
-  // 7. Generate Print-Ready A4 PDF with jsPDF
+  return canvas;
+}
+
+/**
+ * Generates and downloads a print-ready A4 PDF poster for the shop
+ */
+export async function downloadShopPosterPdf(options: GeneratePosterOptions): Promise<void> {
+  const canvas = await renderShopPosterCanvas(options);
+
   // A4 standard format: 210mm x 297mm
-  // ==========================================
   const pdf = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -317,10 +324,25 @@ export async function downloadShopPosterPdf({ shop, qrCanvas }: GeneratePosterOp
   pdf.addImage(posterJpegData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
 
   // Format clean filename based on shop id or shop name
-  const safeShopId = (shop.id || shop.name || "printex-shop")
+  const safeShopId = (options.shop.id || options.shop.name || "printex-shop")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
   pdf.save(`${safeShopId}-counter-poster-A4.pdf`);
+}
+
+/**
+ * Downloads the high-resolution poster as a PNG image
+ */
+export async function downloadShopPosterImage(options: GeneratePosterOptions): Promise<void> {
+  const canvas = await renderShopPosterCanvas(options);
+  const a = document.createElement("a");
+  a.href = canvas.toDataURL("image/png");
+  const safeShopId = (options.shop.id || options.shop.name || "printex-shop")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+  a.download = `${safeShopId}-counter-poster.png`;
+  a.click();
 }
