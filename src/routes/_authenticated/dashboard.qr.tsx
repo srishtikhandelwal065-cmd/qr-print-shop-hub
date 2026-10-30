@@ -3,13 +3,12 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import {
   Download, Printer, Copy, Check, ExternalLink, Sparkles,
-  FileDown, Image as ImageIcon, Eye, RefreshCw, Layout, Smartphone
+  FileDown, RefreshCw, Layout, Smartphone
 } from "lucide-react";
 import { useShop } from "@/lib/use-shop";
 import { shopUploadUrl } from "@/lib/shop-store";
 import {
   downloadShopPosterPdf,
-  downloadShopPosterImage,
   renderShopPosterCanvas
 } from "@/lib/poster-generator";
 
@@ -78,22 +77,6 @@ function QrPage() {
     } catch (err) {
       console.error("Failed to generate shop poster:", err);
       alert("Could not generate poster. Please try again.");
-    } finally {
-      setIsGeneratingPoster(false);
-    }
-  };
-
-  const downloadPosterImg = async () => {
-    try {
-      setIsGeneratingPoster(true);
-      const qrCanvas = posterQrRef.current || wrap.current?.querySelector("canvas");
-      if (!qrCanvas) {
-        throw new Error("QR Code is not ready yet");
-      }
-      await downloadShopPosterImage({ shop, qrCanvas });
-    } catch (err) {
-      console.error("Failed to download poster image:", err);
-      alert("Could not download poster image. Please try again.");
     } finally {
       setIsGeneratingPoster(false);
     }
@@ -316,15 +299,6 @@ function QrPage() {
                   <FileDown className="h-4 w-4" /> Download Poster (A4 PDF)
                 </>
               )}
-            </button>
-
-            {/* Download High-Res Poster Image */}
-            <button
-              onClick={downloadPosterImg}
-              disabled={isGeneratingPoster}
-              className="btn btn-outline w-full py-2.5 text-xs font-bold min-h-[42px] flex items-center justify-center gap-2 hover:bg-secondary transition-all"
-            >
-              <ImageIcon className="h-4 w-4 text-teal" /> Download Poster (PNG)
             </button>
 
             {/* Print Standee / Poster */}
